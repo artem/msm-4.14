@@ -57,6 +57,10 @@ static struct ion_heap_desc ion_heap_meta[] = {
 		.name	= ION_QSECOM_HEAP_NAME,
 	},
 	{
+		.id	= ION_GOOGLE_HEAP_ID,
+		.name	= ION_GOOGLE_HEAP_NAME,
+	},
+	{
 		.id	= ION_QSECOM_TA_HEAP_ID,
 		.name	= ION_QSECOM_TA_HEAP_NAME,
 	},

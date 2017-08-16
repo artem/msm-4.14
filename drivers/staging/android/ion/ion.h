@@ -40,6 +40,7 @@
 #define ION_SECURE_CARVEOUT_HEAP_NAME	"secure_carveout"
 #define ION_USER_CONTIG_HEAP_NAME	"user_contig"
 #define ION_QSECOM_HEAP_NAME	"qsecom"
+#define ION_GOOGLE_HEAP_NAME	"easel_mem"
 #define ION_QSECOM_TA_HEAP_NAME	"qsecom_ta"
 #define ION_SECURE_HEAP_NAME	"secure_heap"
 #define ION_SECURE_DISPLAY_HEAP_NAME "secure_display"
