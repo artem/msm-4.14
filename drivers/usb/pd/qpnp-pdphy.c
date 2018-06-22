@@ -626,6 +626,7 @@ static irqreturn_t pdphy_msg_tx_irq(int irq, void *data)
 {
 	struct usb_pdphy *pdphy = data;
 
+	pm_wakeup_event(pdphy->dev, PD_ACTIVITY_TIMEOUT_MS);
 	/* TX already aborted by received signal */
 	if (pdphy->tx_status != -EINPROGRESS)
 		return IRQ_HANDLED;
@@ -653,6 +654,7 @@ static irqreturn_t pdphy_msg_rx_discarded_irq(int irq, void *data)
 {
 	struct usb_pdphy *pdphy = data;
 
+	pm_wakeup_event(pdphy->dev, PD_ACTIVITY_TIMEOUT_MS);
 	pdphy->msg_rx_discarded_cnt++;
 
 	return IRQ_HANDLED;
@@ -664,6 +666,7 @@ static irqreturn_t pdphy_sig_rx_irq_thread(int irq, void *data)
 	int ret;
 	struct usb_pdphy *pdphy = data;
 
+	pm_wakeup_event(pdphy->dev, PD_ACTIVITY_TIMEOUT_MS);
 	pdphy->sig_rx_cnt++;
 
 	ret = pdphy_reg_read(pdphy, &rx_status, USB_PDPHY_RX_STATUS, 1);
@@ -695,6 +698,7 @@ static irqreturn_t pdphy_sig_tx_irq_thread(int irq, void *data)
 {
 	struct usb_pdphy *pdphy = data;
 
+	pm_wakeup_event(pdphy->dev, PD_ACTIVITY_TIMEOUT_MS);
 	/* in case of exit from BIST Carrier Mode 2, clear BIST_MODE */
 	pdphy_reg_write(pdphy, USB_PDPHY_BIST_MODE, 0);
 
@@ -726,6 +730,7 @@ static irqreturn_t pdphy_msg_rx_irq(int irq, void *data)
 	int ret;
 	struct usb_pdphy *pdphy = data;
 
+	pm_wakeup_event(pdphy->dev, PD_ACTIVITY_TIMEOUT_MS);
 	pdphy->msg_rx_cnt++;
 
 	ret = pdphy_reg_read(pdphy, &size, USB_PDPHY_RX_SIZE, 1);
