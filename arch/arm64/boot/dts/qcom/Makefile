@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+ifeq (1,0)
 dtb-$(CONFIG_ARCH_QCOM)	+= apq8016-sbc.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= apq8096-db820c.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= ipq8074-hk01.dtb
@@ -193,6 +194,9 @@ endif
 dtb-$(CONFIG_ARCH_SDXPRAIRIE) += sdxprairie-rumi.dtb \
 	sdxprairie-cdp.dtb \
 	sdxprairie-mtp.dtb
+endif
+
+dtb-$(CONFIG_ARCH_SDM845) += sdm845-v2.1.dtb
 
 ifeq ($(CONFIG_ARM64),y)
 always		:= $(dtb-y)
