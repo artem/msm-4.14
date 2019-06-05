@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -22,7 +27,7 @@ static int __cam_lrme_ctx_acquire_dev_in_available(struct cam_context *ctx,
 	struct cam_acquire_dev_cmd *cmd)
 {
 	int rc = 0;
-	uintptr_t ctxt_to_hw_map = (uintptr_t)ctx->ctxt_to_hw_map;
+	uint64_t ctxt_to_hw_map = (uint64_t)ctx->ctxt_to_hw_map;
 	struct cam_lrme_context *lrme_ctx = ctx->ctx_priv;
 
 	CAM_DBG(CAM_LRME, "Enter ctx %d", ctx->ctx_id);

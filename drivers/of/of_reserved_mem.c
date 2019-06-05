@@ -12,6 +12,11 @@
  * published by the Free Software Foundation; either version 2 of the
  * License or (at your optional) any later version of the license.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #define pr_fmt(fmt)	"OF: reserved mem: " fmt
 
@@ -26,7 +31,7 @@
 #include <linux/slab.h>
 #include <linux/kmemleak.h>
 
-#define MAX_RESERVED_REGIONS	32
+#define MAX_RESERVED_REGIONS	64
 static struct reserved_mem reserved_mem[MAX_RESERVED_REGIONS];
 static int reserved_mem_count;
 

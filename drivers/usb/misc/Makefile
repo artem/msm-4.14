@@ -33,3 +33,4 @@ obj-$(CONFIG_USB_TYPEC_MUX_NXP5150A)	+= nxp_typec.o
 obj-$(CONFIG_USB_SISUSBVGA)		+= sisusbvga/
 obj-$(CONFIG_USB_LINK_LAYER_TEST)	+= lvstest.o
 obj-$(CONFIG_USB_REDRIVER_NB7VPQ904M)	+= ssusb-redriver-nb7vpq904m.o
+obj-$(CONFIG_USB_SOMC_SLG4R41505)	+= slg4r41505.o

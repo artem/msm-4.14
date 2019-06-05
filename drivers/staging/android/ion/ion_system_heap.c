@@ -2,7 +2,7 @@
  * drivers/staging/android/ion/ion_system_heap.c
  *
  * Copyright (C) 2011 Google, Inc.
- * Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2019, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -13,6 +13,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
+ */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2017 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
  */
 
 #include <asm/page.h>
@@ -233,15 +238,7 @@ static int ion_heap_alloc_pages_mem(struct pages_mem *pages_mem)
 
 	page_tbl_size = sizeof(struct page *) * (pages_mem->size >> PAGE_SHIFT);
 	if (page_tbl_size > SZ_8K) {
-		/*
-		 * Do fallback to ensure we have a balance between
-		 * performance and availability.
-		 */
-		pages = kmalloc(page_tbl_size,
-				__GFP_COMP | __GFP_NORETRY |
-				__GFP_NOWARN);
-		if (!pages)
-			pages = vmalloc(page_tbl_size);
+		pages = vmalloc(page_tbl_size);
 	} else {
 		pages = kmalloc(page_tbl_size, GFP_KERNEL);
 	}
@@ -331,8 +328,10 @@ static int ion_system_heap_allocate(struct ion_heap *heap,
 		goto err;
 
 	table = kzalloc(sizeof(*table), GFP_KERNEL);
-	if (!table)
+	if (!table) {
+		ret = -ENOMEM;
 		goto err_free_data_pages;
+	}
 
 	ret = sg_alloc_table(table, i, GFP_KERNEL);
 	if (ret)
@@ -615,7 +614,7 @@ static void ion_system_heap_destroy_pools(struct ion_page_pool **pools)
  * ion_system_heap_destroy_pools to destroy the pools.
  */
 static int ion_system_heap_create_pools(struct ion_page_pool **pools,
-					bool cached)
+					bool cached, bool movable)
 {
 	int i;
 	for (i = 0; i < NUM_ORDERS; i++) {
@@ -624,7 +623,8 @@ static int ion_system_heap_create_pools(struct ion_page_pool **pools,
 
 		if (orders[i])
 			gfp_flags = high_order_gfp_flags;
-		pool = ion_page_pool_create(gfp_flags, orders[i], cached);
+		pool = ion_page_pool_create(gfp_flags, orders[i], cached,
+					movable);
 		if (!pool)
 			goto err_create_pool;
 		pools[i] = pool;
@@ -650,13 +650,13 @@ struct ion_heap *ion_system_heap_create(struct ion_platform_heap *data)
 	for (i = 0; i < VMID_LAST; i++)
 		if (is_secure_vmid_valid(i))
 			if (ion_system_heap_create_pools(
-					heap->secure_pools[i], false))
+					heap->secure_pools[i], false, false))
 				goto destroy_secure_pools;
 
-	if (ion_system_heap_create_pools(heap->uncached_pools, false))
+	if (ion_system_heap_create_pools(heap->uncached_pools, false, false))
 		goto destroy_secure_pools;
 
-	if (ion_system_heap_create_pools(heap->cached_pools, true))
+	if (ion_system_heap_create_pools(heap->cached_pools, true, true))
 		goto destroy_uncached_pools;
 
 	mutex_init(&heap->split_page_mutex);

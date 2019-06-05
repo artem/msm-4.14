@@ -9,9 +9,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef __ICNSS_PRIVATE_H__
 #define __ICNSS_PRIVATE_H__
+
+#include <soc/qcom/subsystem_restart.h>
 
 #define icnss_ipc_log_string(_x...) do {				\
 	if (icnss_ipc_log_context)					\
@@ -357,6 +364,9 @@ struct icnss_priv {
 	uint32_t fw_early_crash_irq;
 	struct completion driver_probed;
 	char function_name[WLFW_FUNCTION_NAME_LEN + 1];
+	char crash_reason[SUBSYS_CRASH_REASON_LEN];
+	wait_queue_head_t wlan_pdr_debug_q;
+	int data_ready;
 };
 
 int icnss_call_driver_uevent(struct icnss_priv *priv,

@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef _CAM_CPAS_API_H_
 #define _CAM_CPAS_API_H_
@@ -47,7 +52,6 @@ enum cam_cpas_hw_version {
 	CAM_CPAS_TITAN_170_V120 = 0x170120,
 	CAM_CPAS_TITAN_175_V100 = 0x175100,
 	CAM_CPAS_TITAN_175_V101 = 0x175101,
-	CAM_CPAS_TITAN_175_V120 = 0x175120,
 	CAM_CPAS_TITAN_MAX
 };
 
@@ -65,11 +69,6 @@ enum cam_cpas_hw_version {
  * @CAM_CAMNOC_IRQ_IFE13_UBWC_ENCODE_ERROR  : Triggered if any error detected
  *                                            in the IFE1 or IFE3 UBWC encoder
  *                                            instance
- * @CAM_CAMNOC_IRQ_IFE0_UBWC_ENCODE_ERROR   : Triggered if any error detected
- *                                            in the IFE0 UBWC encoder instance
- * @CAM_CAMNOC_IRQ_IFE1_WR_UBWC_ENCODE_ERROR  : Triggered if any error detected
- *                                            in the IFE1 UBWC encoder
- *                                            instance
  * @CAM_CAMNOC_IRQ_IPE_BPS_UBWC_DECODE_ERROR: Triggered if any error detected
  *                                            in the IPE/BPS UBWC decoder
  *                                            instance
@@ -83,8 +82,6 @@ enum cam_camnoc_irq_type {
 	CAM_CAMNOC_IRQ_SLAVE_ERROR,
 	CAM_CAMNOC_IRQ_IFE02_UBWC_ENCODE_ERROR,
 	CAM_CAMNOC_IRQ_IFE13_UBWC_ENCODE_ERROR,
-	CAM_CAMNOC_IRQ_IFE0_UBWC_ENCODE_ERROR,
-	CAM_CAMNOC_IRQ_IFE1_WRITE_UBWC_ENCODE_ERROR,
 	CAM_CAMNOC_IRQ_IPE_BPS_UBWC_DECODE_ERROR,
 	CAM_CAMNOC_IRQ_IPE_BPS_UBWC_ENCODE_ERROR,
 	CAM_CAMNOC_IRQ_AHB_TIMEOUT,

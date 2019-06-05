@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef _CAM_CSIPHY_1_1_HWREG_H_
 #define _CAM_CSIPHY_1_1_HWREG_H_
@@ -23,8 +28,6 @@ struct csiphy_reg_parms_t csiphy_v1_1 = {
 	.csiphy_reset_array_size = 5,
 	.csiphy_2ph_config_array_size = 14,
 	.csiphy_3ph_config_array_size = 43,
-	.csiphy_2ph_clock_lane = 0x1,
-	.csiphy_2ph_combo_ck_ln = 0x10,
 };
 
 struct csiphy_reg_t csiphy_common_reg_1_1[] = {

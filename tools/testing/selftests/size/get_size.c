@@ -20,6 +20,11 @@
  * has large external dependencies) by  implementing it's own
  * number output and print routines, and using __builtin_strlen()
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2014 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <sys/sysinfo.h>
 #include <unistd.h>

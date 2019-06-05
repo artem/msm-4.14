@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/device.h>
 #include <linux/platform_device.h>
@@ -313,9 +318,6 @@ static int cam_cpas_util_axi_setup(struct cam_cpas *cpas_core,
 			goto mnoc_node_get_fail;
 		}
 		axi_port->axi_port_mnoc_node = axi_port_mnoc_node;
-		axi_port->ib_bw_voting_needed =
-			of_property_read_bool(axi_port_node,
-				"ib-bw-voting-needed");
 
 		rc = cam_cpas_util_register_bus_client(soc_info,
 			axi_port_mnoc_node, &axi_port->mnoc_bus);
@@ -665,19 +667,12 @@ static int cam_cpas_util_apply_client_axi_vote(
 		axi_port->camnoc_bus.src, axi_port->camnoc_bus.dst,
 		camnoc_bw, mnoc_bw);
 
-	if (axi_port->ib_bw_voting_needed)
-		rc = cam_cpas_util_vote_bus_client_bw(&axi_port->mnoc_bus,
-			mnoc_bw, mnoc_bw, false);
-	else
-		rc = cam_cpas_util_vote_bus_client_bw(&axi_port->mnoc_bus,
-			mnoc_bw, 0, false);
-
+	rc = cam_cpas_util_vote_bus_client_bw(&axi_port->mnoc_bus,
+		mnoc_bw, mnoc_bw, false);
 	if (rc) {
 		CAM_ERR(CAM_CPAS,
 			"Failed in mnoc vote ab[%llu] ib[%llu] rc=%d",
-			mnoc_bw,
-			(axi_port->ib_bw_voting_needed ? mnoc_bw : 0),
-			rc);
+			mnoc_bw, mnoc_bw, rc);
 		goto unlock_axi_port;
 	}
 
@@ -944,7 +939,7 @@ static int cam_cpas_hw_start(void *hw_priv, void *start_args,
 	}
 
 	if (sizeof(struct cam_cpas_hw_cmd_start) != arg_size) {
-		CAM_ERR(CAM_CPAS, "HW_CAPS size mismatch %zd %d",
+		CAM_ERR(CAM_CPAS, "HW_CAPS size mismatch %ld %d",
 			sizeof(struct cam_cpas_hw_cmd_start), arg_size);
 		return -EINVAL;
 	}
@@ -1076,7 +1071,7 @@ static int cam_cpas_hw_stop(void *hw_priv, void *stop_args,
 	}
 
 	if (sizeof(struct cam_cpas_hw_cmd_stop) != arg_size) {
-		CAM_ERR(CAM_CPAS, "HW_CAPS size mismatch %zd %d",
+		CAM_ERR(CAM_CPAS, "HW_CAPS size mismatch %ld %d",
 			sizeof(struct cam_cpas_hw_cmd_stop), arg_size);
 		return -EINVAL;
 	}
@@ -1179,7 +1174,7 @@ static int cam_cpas_hw_init(void *hw_priv, void *init_hw_args,
 	}
 
 	if (sizeof(struct cam_cpas_hw_caps) != arg_size) {
-		CAM_ERR(CAM_CPAS, "INIT HW size mismatch %zd %d",
+		CAM_ERR(CAM_CPAS, "INIT HW size mismatch %ld %d",
 			sizeof(struct cam_cpas_hw_caps), arg_size);
 		return -EINVAL;
 	}
@@ -1336,7 +1331,7 @@ static int cam_cpas_hw_get_hw_info(void *hw_priv,
 	}
 
 	if (sizeof(struct cam_cpas_hw_caps) != arg_size) {
-		CAM_ERR(CAM_CPAS, "HW_CAPS size mismatch %zd %d",
+		CAM_ERR(CAM_CPAS, "HW_CAPS size mismatch %ld %d",
 			sizeof(struct cam_cpas_hw_caps), arg_size);
 		return -EINVAL;
 	}

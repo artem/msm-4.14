@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2019 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef _CAM_ISP_CONTEXT_H_
 #define _CAM_ISP_CONTEXT_H_
@@ -16,7 +21,6 @@
 
 #include <linux/spinlock.h>
 #include <uapi/media/cam_isp.h>
-#include <uapi/media/cam_defs.h>
 
 #include "cam_context.h"
 #include "cam_isp_hw_mgr_intf.h"
@@ -116,7 +120,6 @@ struct cam_isp_ctx_req {
 	uint32_t                              num_acked;
 	int32_t                               bubble_report;
 	struct cam_isp_prepare_hw_update_data hw_update_data;
-	bool                                  bubble_detected;
 };
 
 /**
@@ -144,8 +147,6 @@ struct cam_isp_context_state_monitor {
  * @base:                      Common context object pointer
  * @frame_id:                  Frame id tracking for the isp context
  * @substate_actiavted:        Current substate for the activated state.
- * @process_bubble:            Atomic variable to check if ctx is still
- *                             processing bubble.
  * @substate_machine:          ISP substate machine for external interface
  * @substate_machine_irq:      ISP substate machine for irq handling
  * @req_base:                  Common request object storage
@@ -162,9 +163,6 @@ struct cam_isp_context_state_monitor {
  * @cam_isp_ctx_state_monitor: State monitoring array
  * @rdi_only_context:          Get context type information.
  *                             true, if context is rdi only context
- * @hw_acquired:               Indicate whether HW resources are acquired
- * @init_received:             Indicate whether init config packet is received
- * @split_acquire:             Indicate whether a separate acquire is expected
  *
  */
 struct cam_isp_context {
@@ -172,7 +170,6 @@ struct cam_isp_context {
 
 	int64_t                          frame_id;
 	uint32_t                         substate_activated;
-	atomic_t                         process_bubble;
 	struct cam_ctx_ops              *substate_machine;
 	struct cam_isp_ctx_irq_ops      *substate_machine_irq;
 
@@ -181,6 +178,9 @@ struct cam_isp_context {
 
 	void                            *hw_ctx;
 	uint64_t                         sof_timestamp_val;
+/* sony extension begin */
+	bool                             hw_config_applied;
+/* sony extension end */
 	uint64_t                         boot_timestamp;
 	int32_t                          active_req_cnt;
 	int64_t                          reported_req_id;
@@ -190,9 +190,6 @@ struct cam_isp_context {
 	struct cam_isp_context_state_monitor cam_isp_ctx_state_monitor[
 		CAM_ISP_CTX_STATE_MONITOR_MAX_ENTRIES];
 	bool                             rdi_only_context;
-	bool                             hw_acquired;
-	bool                             init_received;
-	bool                             split_acquire;
 };
 
 /**

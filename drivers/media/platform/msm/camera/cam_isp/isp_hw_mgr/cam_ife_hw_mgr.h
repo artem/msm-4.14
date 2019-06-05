@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef _CAM_IFE_HW_MGR_H_
 #define _CAM_IFE_HW_MGR_H_
@@ -26,7 +31,6 @@ enum cam_ife_hw_mgr_res_type {
 	CAM_IFE_HW_MGR_RES_CID,
 	CAM_IFE_HW_MGR_RES_CSID,
 	CAM_IFE_HW_MGR_RES_IFE_SRC,
-	CAM_IFE_HW_MGR_RES_IFE_IN_RD,
 	CAM_IFE_HW_MGR_RES_IFE_OUT,
 };
 
@@ -51,7 +55,6 @@ enum cam_ife_hw_mgr_res_type {
  * @parent:              point to the parent resource node.
  * @children:            point to the children resource nodes
  * @child_num:           numbe of the child resource node.
- * @is_secure            informs whether the resource is in secure mode or not
  *
  */
 struct cam_ife_hw_mgr_res {
@@ -65,7 +68,6 @@ struct cam_ife_hw_mgr_res {
 	struct cam_ife_hw_mgr_res       *parent;
 	struct cam_ife_hw_mgr_res       *child[CAM_IFE_HW_OUT_RES_MAX];
 	uint32_t                         num_children;
-	uint32_t                         is_secure;
 };
 
 
@@ -84,17 +86,15 @@ struct ctx_base_info {
 /**
  * struct cam_ife_hw_mgr_debug - contain the debug information
  *
- * @dentry:                    Debugfs entry
- * @csid_debug:                csid debug information
- * @enable_recovery:           enable recovery
- * @enable_diag_sensor_status: enable sensor diagnosis status
+ * @dentry:              Debugfs entry
+ * @csid_debug:          csid debug information
+ * @enable_recovery      enable recovery
  *
  */
 struct cam_ife_hw_mgr_debug {
 	struct dentry  *dentry;
 	uint64_t       csid_debug;
 	uint32_t       enable_recovery;
-	uint32_t       camif_debug;
 };
 
 /**
@@ -109,7 +109,6 @@ struct cam_ife_hw_mgr_debug {
  *                          one.
  * @res_list_csid:          CSID resource list
  * @res_list_ife_src:       IFE input resource list
- * @res_list_ife_in_rd      IFE input resource list for read path
  * @res_list_ife_out:       IFE output resoruces array
  * @free_res_list:          Free resources list for the branch node
  * @res_pool:               memory storage for the free resource list
@@ -130,7 +129,6 @@ struct cam_ife_hw_mgr_debug {
  * @is_rdi_only_context     flag to specify the context has only rdi resource
  * @config_done_complete    indicator for configuration complete
  * @init_done               indicate whether init hw is done
- * @is_fe_enable            indicate whether fetch engine\read path is enabled
  */
 struct cam_ife_hw_mgr_ctx {
 	struct list_head                list;
@@ -144,7 +142,6 @@ struct cam_ife_hw_mgr_ctx {
 	struct list_head                res_list_ife_cid;
 	struct list_head                res_list_ife_csid;
 	struct list_head                res_list_ife_src;
-	struct list_head                res_list_ife_in_rd;
 	struct cam_ife_hw_mgr_res       res_list_ife_out[
 						CAM_IFE_HW_OUT_RES_MAX];
 
@@ -166,7 +163,6 @@ struct cam_ife_hw_mgr_ctx {
 	uint32_t                        is_rdi_only_context;
 	struct completion               config_done_complete;
 	bool                            init_done;
-	bool                            is_fe_enable;
 };
 
 /**
@@ -212,10 +208,9 @@ struct cam_ife_hw_mgr {
  *                      etnry functinon for the IFE HW manager.
  *
  * @hw_mgr_intf:        IFE hardware manager object returned
- * @iommu_hdl:          Iommu handle to be returned
  *
  */
-int cam_ife_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl);
+int cam_ife_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf);
 
 /**
  * cam_ife_mgr_do_tasklet_buf_done()

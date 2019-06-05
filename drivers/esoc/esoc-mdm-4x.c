@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/coresight.h>
 #include <linux/coresight-cti.h>
@@ -392,8 +397,11 @@ static void mdm_get_restart_reason(struct work_struct *work)
 		esoc_mdm_log("restart reason not obtained. err: %d\n", ret);
 		dev_dbg(dev, "%s: Error retrieving restart reason: %d\n",
 						__func__, ret);
+		snprintf(sfr_buf, sizeof(sfr_buf), "%s",
+				"Unexpected reset on external modem");
 	}
 	mdm->get_restart_reason = false;
+	subsystem_crash_reason(mdm->esoc->subsys.name, sfr_buf);
 }
 
 void mdm_wait_for_status_low(struct mdm_ctrl *mdm, bool atomic)

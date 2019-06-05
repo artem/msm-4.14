@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2019 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #define pr_fmt(fmt)	"[drm:%s:%d] " fmt, __func__, __LINE__
 #include <linux/slab.h>
@@ -3414,21 +3419,36 @@ static int sde_parse_merge_3d_dt(struct device_node *np,
 			GFP_KERNEL);
 	if (!prop_value) {
 		rc = -ENOMEM;
+#ifdef CONFIG_DRM_SDE_SPECIFIC_PANEL
+		goto end;
+#else
 		goto fail;
+#endif /* CONFIG_DRM_SDE_SPECIFIC_PANEL */
 	}
 
 	rc = _validate_dt_entry(np, merge_3d_prop, ARRAY_SIZE(merge_3d_prop),
 		prop_count, &off_count);
 	if (rc)
+#ifdef CONFIG_DRM_SDE_SPECIFIC_PANEL
+		goto end;
+#else
 		goto error;
+#endif /* CONFIG_DRM_SDE_SPECIFIC_PANEL */
 
 	sde_cfg->merge_3d_count = off_count;
 
 	rc = _read_dt_entry(np, merge_3d_prop, ARRAY_SIZE(merge_3d_prop),
 			prop_count,
 			prop_exists, prop_value);
+#ifdef CONFIG_DRM_SDE_SPECIFIC_PANEL
+	if (rc) {
+		sde_cfg->merge_3d_count = 0;
+		goto end;
+	}
+#else
 	if (rc)
 		goto error;
+#endif /* CONFIG_DRM_SDE_SPECIFIC_PANEL */
 
 	for (i = 0; i < off_count; i++) {
 		merge_3d = sde_cfg->merge_3d + i;
@@ -3438,12 +3458,16 @@ static int sde_parse_merge_3d_dt(struct device_node *np,
 				merge_3d->id -  MERGE_3D_0);
 		merge_3d->len = PROP_VALUE_ACCESS(prop_value, HW_LEN, 0);
 	}
-
+#ifdef CONFIG_DRM_SDE_SPECIFIC_PANEL
+end:
+	kfree(prop_value);
+#else
 	return 0;
 error:
 	sde_cfg->merge_3d_count = 0;
 	kfree(prop_value);
 fail:
+#endif /* CONFIG_DRM_SDE_SPECIFIC_PANEL */
 	return rc;
 }
 

@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef _CAM_ISP_HW_MGR_INTF_H_
 #define _CAM_ISP_HW_MGR_INTF_H_
@@ -184,13 +189,11 @@ struct cam_isp_hw_eof_event_data {
  *
  * @error_type:            Error type for the error event
  * @timestamp:             Timestamp for the error event
- * @recovery_enabled:      Identifies if the context needs to recover & reapply
- *                         this request
+ *
  */
 struct cam_isp_hw_error_event_data {
 	uint32_t             error_type;
 	uint64_t             timestamp;
-	bool                 recovery_enabled;
 };
 
 /* enum cam_isp_hw_mgr_command - Hardware manager command type */
@@ -199,28 +202,22 @@ enum cam_isp_hw_mgr_command {
 	CAM_ISP_HW_MGR_CMD_PAUSE_HW,
 	CAM_ISP_HW_MGR_CMD_RESUME_HW,
 	CAM_ISP_HW_MGR_CMD_SOF_DEBUG,
-	CAM_ISP_HW_MGR_CMD_CTX_TYPE,
 	CAM_ISP_HW_MGR_CMD_MAX,
 };
 
-enum cam_isp_ctx_type {
-	CAM_ISP_CTX_FS2 = 1,
-	CAM_ISP_CTX_RDI,
-	CAM_ISP_CTX_PIX,
-	CAM_ISP_CTX_MAX,
-};
 /**
  * struct cam_isp_hw_cmd_args - Payload for hw manager command
  *
+ * @ctxt_to_hw_map:        HW context from the acquire
  * @cmd_type               HW command type
- * @sof_irq_enable         To debug if SOF irq is enabled
- * @ctx_type               RDI_ONLY, PIX and RDI, or FS2
+ * @get_context            Get context type information
  */
 struct cam_isp_hw_cmd_args {
-	uint32_t                          cmd_type;
+	void                               *ctxt_to_hw_map;
+	uint32_t                            cmd_type;
 	union {
+		uint32_t                      is_rdi_only_context;
 		uint32_t                      sof_irq_enable;
-		uint32_t                      ctx_type;
 	} u;
 };
 
@@ -233,9 +230,9 @@ struct cam_isp_hw_cmd_args {
  * @of_node:            Device node input
  * @hw_mgr:             Input/output structure for the ISP hardware manager
  *                          initialization
- * @iommu_hdl:          Iommu handle to be returned
+ *
  */
 int cam_isp_hw_mgr_init(struct device_node *of_node,
-	struct cam_hw_mgr_intf *hw_mgr, int *iommu_hdl);
+	struct cam_hw_mgr_intf *hw_mgr);
 
 #endif /* __CAM_ISP_HW_MGR_INTF_H__ */

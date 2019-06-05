@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/io.h>
 #include <linux/delay.h>
@@ -41,9 +46,6 @@
 #define HFI_VERSION_INFO_STEP_SHFT  0
 
 #define HFI_MAX_POLL_TRY 5
-
-#define HFI_MAX_PC_POLL_TRY 150
-#define HFI_POLL_TRY_SLEEP 2
 
 static struct hfi_info *g_hfi;
 unsigned int g_icp_mmu_hdl;
@@ -516,8 +518,14 @@ void cam_hfi_disable_cpu(void __iomem *icp_base)
 	uint32_t val;
 	uint32_t try = 0;
 
-	while (try < HFI_MAX_PC_POLL_TRY) {
-		data = cam_io_r_mb(icp_base + HFI_REG_A5_CSR_A5_STATUS);
+/* sony extension begin */
+#if 1
+	while (try < 500) {
+#else
+	while (try < HFI_MAX_POLL_TRY) {
+#endif
+/* sony extension end */
+		data = cam_io_r(icp_base + HFI_REG_A5_CSR_A5_STATUS);
 		CAM_DBG(CAM_HFI, "wfi status = %x\n", (int)data);
 
 		if (data & ICP_CSR_A5_STATUS_WFI)
@@ -526,7 +534,13 @@ void cam_hfi_disable_cpu(void __iomem *icp_base)
 		 * and Host can the proceed. No interrupt is expected from FW
 		 * at this time.
 		 */
-		msleep_interruptible(HFI_POLL_TRY_SLEEP);
+/* sony extension begin */
+#if 1
+		usleep_range(1000, 2000);
+#else
+		msleep(100);
+#endif
+/* sony extension end */
 		try++;
 	}
 
@@ -536,11 +550,6 @@ void cam_hfi_disable_cpu(void __iomem *icp_base)
 
 	val = cam_io_r(icp_base + HFI_REG_A5_CSR_NSEC_RESET);
 	cam_io_w_mb(val, icp_base + HFI_REG_A5_CSR_NSEC_RESET);
-
-	cam_io_w_mb((uint32_t)ICP_INIT_REQUEST_RESET,
-		icp_base + HFI_REG_HOST_ICP_INIT_REQUEST);
-	cam_io_w_mb((uint32_t)INTR_DISABLE,
-		icp_base + HFI_REG_A5_CSR_A2HOSTINTEN);
 }
 
 void cam_hfi_enable_cpu(void __iomem *icp_base)
@@ -891,6 +900,11 @@ void cam_hfi_deinit(void __iomem *icp_base)
 	g_hfi->cmd_q_state = false;
 	g_hfi->msg_q_state = false;
 
+	cam_io_w_mb((uint32_t)ICP_INIT_REQUEST_RESET,
+		icp_base + HFI_REG_HOST_ICP_INIT_REQUEST);
+
+	cam_io_w_mb((uint32_t)INTR_DISABLE,
+		g_hfi->csr_base + HFI_REG_A5_CSR_A2HOSTINTEN);
 	kzfree(g_hfi);
 	g_hfi = NULL;
 

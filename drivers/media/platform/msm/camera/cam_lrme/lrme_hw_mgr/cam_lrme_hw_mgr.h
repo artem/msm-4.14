@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef _CAM_LRME_HW_MGR_H_
 #define _CAM_LRME_HW_MGR_H_
@@ -30,13 +35,13 @@
 #define CAM_LRME_WORKQ_NUM_TASK 10
 
 #define CAM_LRME_DECODE_DEVICE_INDEX(ctxt_to_hw_map) \
-	((uintptr_t)ctxt_to_hw_map & 0xF)
+	((uint64_t)ctxt_to_hw_map & 0xF)
 
 #define CAM_LRME_DECODE_PRIORITY(ctxt_to_hw_map) \
-	(((uintptr_t)ctxt_to_hw_map & 0xF0) >> 4)
+	(((uint64_t)ctxt_to_hw_map & 0xF0) >> 4)
 
 #define CAM_LRME_DECODE_CTX_INDEX(ctxt_to_hw_map) \
-	((uint64_t)(uintptr_t)ctxt_to_hw_map >> CAM_LRME_CTX_INDEX_SHIFT)
+	((uint64_t)ctxt_to_hw_map >> CAM_LRME_CTX_INDEX_SHIFT)
 
 /**
  * enum cam_lrme_hw_mgr_ctx_priority

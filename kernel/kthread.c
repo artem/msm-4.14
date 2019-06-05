@@ -5,6 +5,11 @@
  * even if we're invoked from userspace (think modprobe, hotplug cpu,
  * etc.).
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 #include <uapi/linux/sched/types.h>
 #include <linux/sched.h>
 #include <linux/sched/task.h>

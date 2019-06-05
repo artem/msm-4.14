@@ -1,4 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2016 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 #ifndef _LINUX_QRTR_H
 #define _LINUX_QRTR_H
 
@@ -27,6 +32,8 @@ enum qrtr_pkt_type {
 	QRTR_TYPE_NEW_LOOKUP	= 10,
 	QRTR_TYPE_DEL_LOOKUP	= 11,
 };
+#define QRTR_TYPE_DEL_PROC	13
+
 
 struct qrtr_ctrl_pkt {
 	__le32 cmd;
@@ -43,6 +50,11 @@ struct qrtr_ctrl_pkt {
 			__le32 node;
 			__le32 port;
 		} client;
+
+		struct {
+			__le32 rsvd;
+			__le32 node;
+		} proc;
 	};
 } __packed;
 

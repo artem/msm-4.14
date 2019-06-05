@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/debugfs.h>
 #include <linux/videodev2.h>
@@ -31,7 +36,7 @@ static void cam_node_print_ctx_state(
 	for (i = 0; i < node->ctx_size; i++) {
 		ctx = &node->ctx_list[i];
 
-		spin_lock_bh(&ctx->lock);
+		spin_lock(&ctx->lock);
 		CAM_INFO(CAM_CORE,
 			"[%s][%d] : state=%d, refcount=%d, active_req_list=%d, pending_req_list=%d, wait_req_list=%d, free_req_list=%d",
 			ctx->dev_name ? ctx->dev_name : "null",
@@ -41,7 +46,7 @@ static void cam_node_print_ctx_state(
 			list_empty(&ctx->pending_req_list),
 			list_empty(&ctx->wait_req_list),
 			list_empty(&ctx->free_req_list));
-		spin_unlock_bh(&ctx->lock);
+		spin_unlock(&ctx->lock);
 	}
 	mutex_unlock(&node->list_mutex);
 }
@@ -111,7 +116,6 @@ static int __cam_node_handle_acquire_dev(struct cam_node *node,
 		goto err;
 	}
 
-	ctx->last_flush_req = 0;
 	rc = cam_context_handle_acquire_dev(ctx, acquire);
 	if (rc) {
 		CAM_ERR(CAM_CORE, "Acquire device failed for node %s",
@@ -127,45 +131,6 @@ free_ctx:
 	cam_context_putref(ctx);
 err:
 	return rc;
-}
-
-static int __cam_node_handle_acquire_hw_v1(struct cam_node *node,
-	struct cam_acquire_hw_cmd_v1 *acquire)
-{
-	int rc = 0;
-	struct cam_context *ctx = NULL;
-
-	if (!acquire)
-		return -EINVAL;
-
-	if (acquire->dev_handle <= 0) {
-		CAM_ERR(CAM_CORE, "Invalid device handle for context");
-		return -EINVAL;
-	}
-
-	if (acquire->session_handle <= 0) {
-		CAM_ERR(CAM_CORE, "Invalid session handle for context");
-		return -EINVAL;
-	}
-
-	ctx = (struct cam_context *)cam_get_device_priv(acquire->dev_handle);
-	if (!ctx) {
-		CAM_ERR(CAM_CORE, "Can not get context for handle %d",
-			acquire->dev_handle);
-		return -EINVAL;
-	}
-
-	rc = cam_context_handle_acquire_hw(ctx, acquire);
-	if (rc) {
-		CAM_ERR(CAM_CORE, "Acquire device failed for node %s",
-			node->name);
-		return rc;
-	}
-
-	CAM_DBG(CAM_CORE, "[%s] Acquire ctx_id %d",
-		node->name, ctx->ctx_id);
-
-	return 0;
 }
 
 static int __cam_node_handle_start_dev(struct cam_node *node,
@@ -345,45 +310,6 @@ destroy_dev_hdl:
 	if (rc)
 		CAM_ERR(CAM_CORE, "destroy device hdl failed for node %s",
 			node->name);
-	else
-		ctx->dev_hdl = -1;
-
-	CAM_DBG(CAM_CORE, "[%s] Release ctx_id=%d, refcount=%d",
-		node->name, ctx->ctx_id,
-		atomic_read(&(ctx->refcount.refcount.refs)));
-
-	return rc;
-}
-
-static int __cam_node_handle_release_hw_v1(struct cam_node *node,
-	struct cam_release_hw_cmd_v1 *release)
-{
-	int rc = 0;
-	struct cam_context *ctx = NULL;
-
-	if (!release)
-		return -EINVAL;
-
-	if (release->dev_handle <= 0) {
-		CAM_ERR(CAM_CORE, "Invalid device handle for context");
-		return -EINVAL;
-	}
-
-	if (release->session_handle <= 0) {
-		CAM_ERR(CAM_CORE, "Invalid session handle for context");
-		return -EINVAL;
-	}
-
-	ctx = (struct cam_context *)cam_get_device_priv(release->dev_handle);
-	if (!ctx) {
-		CAM_ERR(CAM_CORE, "Can not get context for handle %d node %s",
-			release->dev_handle, node->name);
-		return -EINVAL;
-	}
-
-	rc = cam_context_handle_release_hw(ctx, release);
-	if (rc)
-		CAM_ERR(CAM_CORE, "context release failed node %s", node->name);
 
 	CAM_DBG(CAM_CORE, "[%s] Release ctx_id=%d, refcount=%d",
 		node->name, ctx->ctx_id,
@@ -509,10 +435,10 @@ int cam_node_shutdown(struct cam_node *node)
 
 	for (i = 0; i < node->ctx_size; i++) {
 		if (node->ctx_list[i].dev_hdl > 0) {
-			CAM_DBG(CAM_CORE,
-				"Node [%s] invoking shutdown on context [%d]",
-				node->name, i);
 			rc = cam_context_shutdown(&(node->ctx_list[i]));
+			if (rc)
+				continue;
+			cam_context_putref(&(node->ctx_list[i]));
 		}
 	}
 
@@ -580,7 +506,7 @@ int cam_node_handle_ioctl(struct cam_node *node, struct cam_control *cmd)
 	case CAM_QUERY_CAP: {
 		struct cam_query_cap_cmd query;
 
-		if (copy_from_user(&query, u64_to_user_ptr(cmd->handle),
+		if (copy_from_user(&query, (void __user *)cmd->handle,
 			sizeof(query))) {
 			rc = -EFAULT;
 			break;
@@ -593,7 +519,7 @@ int cam_node_handle_ioctl(struct cam_node *node, struct cam_control *cmd)
 			break;
 		}
 
-		if (copy_to_user(u64_to_user_ptr(cmd->handle), &query,
+		if (copy_to_user((void __user *)cmd->handle, &query,
 			sizeof(query)))
 			rc = -EFAULT;
 
@@ -602,7 +528,7 @@ int cam_node_handle_ioctl(struct cam_node *node, struct cam_control *cmd)
 	case CAM_ACQUIRE_DEV: {
 		struct cam_acquire_dev_cmd acquire;
 
-		if (copy_from_user(&acquire, u64_to_user_ptr(cmd->handle),
+		if (copy_from_user(&acquire, (void __user *)cmd->handle,
 			sizeof(acquire))) {
 			rc = -EFAULT;
 			break;
@@ -613,66 +539,15 @@ int cam_node_handle_ioctl(struct cam_node *node, struct cam_control *cmd)
 				rc);
 			break;
 		}
-		if (copy_to_user(u64_to_user_ptr(cmd->handle), &acquire,
+		if (copy_to_user((void __user *)cmd->handle, &acquire,
 			sizeof(acquire)))
 			rc = -EFAULT;
-		break;
-	}
-	case CAM_ACQUIRE_HW: {
-		uint32_t api_version;
-		void *acquire_ptr = NULL;
-		size_t acquire_size;
-
-		if (copy_from_user(&api_version, (void __user *)cmd->handle,
-			sizeof(api_version))) {
-			rc = -EFAULT;
-			break;
-		}
-
-		if (api_version == 1) {
-			acquire_size = sizeof(struct cam_acquire_hw_cmd_v1);
-		} else {
-			CAM_ERR(CAM_CORE, "Unsupported api version %d",
-				api_version);
-			rc = -EINVAL;
-			break;
-		}
-
-		acquire_ptr = kzalloc(acquire_size, GFP_KERNEL);
-		if (!acquire_ptr) {
-			CAM_ERR(CAM_CORE, "No memory for acquire HW");
-			rc = -ENOMEM;
-			break;
-		}
-
-		if (copy_from_user(acquire_ptr, (void __user *)cmd->handle,
-			acquire_size)) {
-			rc = -EFAULT;
-			goto acquire_kfree;
-		}
-
-		if (api_version == 1) {
-			rc = __cam_node_handle_acquire_hw_v1(node, acquire_ptr);
-			if (rc) {
-				CAM_ERR(CAM_CORE,
-					"acquire device failed(rc = %d)", rc);
-				goto acquire_kfree;
-			}
-			CAM_INFO(CAM_CORE, "Acquire HW successful");
-		}
-
-		if (copy_to_user((void __user *)cmd->handle, acquire_ptr,
-			acquire_size))
-			rc = -EFAULT;
-
-acquire_kfree:
-		kfree(acquire_ptr);
 		break;
 	}
 	case CAM_START_DEV: {
 		struct cam_start_stop_dev_cmd start;
 
-		if (copy_from_user(&start, u64_to_user_ptr(cmd->handle),
+		if (copy_from_user(&start, (void __user *)cmd->handle,
 			sizeof(start)))
 			rc = -EFAULT;
 		else {
@@ -686,7 +561,7 @@ acquire_kfree:
 	case CAM_STOP_DEV: {
 		struct cam_start_stop_dev_cmd stop;
 
-		if (copy_from_user(&stop, u64_to_user_ptr(cmd->handle),
+		if (copy_from_user(&stop, (void __user *)cmd->handle,
 			sizeof(stop)))
 			rc = -EFAULT;
 		else {
@@ -700,7 +575,7 @@ acquire_kfree:
 	case CAM_CONFIG_DEV: {
 		struct cam_config_dev_cmd config;
 
-		if (copy_from_user(&config, u64_to_user_ptr(cmd->handle),
+		if (copy_from_user(&config, (void __user *)cmd->handle,
 			sizeof(config)))
 			rc = -EFAULT;
 		else {
@@ -714,7 +589,7 @@ acquire_kfree:
 	case CAM_RELEASE_DEV: {
 		struct cam_release_dev_cmd release;
 
-		if (copy_from_user(&release, u64_to_user_ptr(cmd->handle),
+		if (copy_from_user(&release, (void __user *)cmd->handle,
 			sizeof(release)))
 			rc = -EFAULT;
 		else {
@@ -725,56 +600,10 @@ acquire_kfree:
 		}
 		break;
 	}
-	case CAM_RELEASE_HW: {
-		uint32_t api_version;
-		size_t release_size;
-		void *release_ptr = NULL;
-
-		if (copy_from_user(&api_version, (void __user *)cmd->handle,
-			sizeof(api_version))) {
-			rc = -EFAULT;
-			break;
-		}
-
-		if (api_version == 1) {
-			release_size = sizeof(struct cam_release_hw_cmd_v1);
-		} else {
-			CAM_ERR(CAM_CORE, "Unsupported api version %d",
-				api_version);
-			rc = -EINVAL;
-			break;
-		}
-
-		release_ptr = kzalloc(release_size, GFP_KERNEL);
-		if (!release_ptr) {
-			CAM_ERR(CAM_CORE, "No memory for release HW");
-			rc = -ENOMEM;
-			break;
-		}
-
-		if (copy_from_user(release_ptr, (void __user *)cmd->handle,
-			release_size)) {
-			rc = -EFAULT;
-			goto release_kfree;
-		}
-
-		if (api_version == 1) {
-			rc = __cam_node_handle_release_hw_v1(node, release_ptr);
-			if (rc)
-				CAM_ERR(CAM_CORE,
-					"release device failed(rc = %d)", rc);
-		}
-
-		CAM_INFO(CAM_CORE, "Release HW done(rc = %d)", rc);
-
-release_kfree:
-		kfree(release_ptr);
-		break;
-	}
 	case CAM_FLUSH_REQ: {
 		struct cam_flush_dev_cmd flush;
 
-		if (copy_from_user(&flush, u64_to_user_ptr(cmd->handle),
+		if (copy_from_user(&flush, (void __user *)cmd->handle,
 			sizeof(flush)))
 			rc = -EFAULT;
 		else {

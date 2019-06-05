@@ -11,6 +11,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/idr.h>
 #include <linux/interrupt.h>
@@ -1505,6 +1510,7 @@ static int __qcom_glink_send(struct glink_channel *channel,
 	}
 
 	while (left_size > 0) {
+		data = (void *)((char *)data + chunk_size);
 		chunk_size = left_size;
 		if (chunk_size > SZ_8K)
 			chunk_size = SZ_8K;

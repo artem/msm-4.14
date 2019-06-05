@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
@@ -79,17 +84,6 @@
 		label = "gpio-keys";
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&key_vol_up_default>;
-
-		vol_up {
-			label = "volume_up";
-			gpios = <&pm8150_gpios 6 GPIO_ACTIVE_LOW>;
-			linux,input-type = <1>;
-			linux,code = <KEY_VOLUMEUP>;
-			gpio-key,wakeup;
-			debounce-interval = <15>;
-			linux,can-disable;
-		};
 	};
 
 	qcom,qbt1000 {
@@ -265,6 +259,7 @@
 	compatible = "qcom,ufs-phy-qmp-v4";
 
 	vdda-phy-supply = <&pm8150_l5>;
+	vdda-phy-always-on;
 	vdda-pll-supply = <&pm8150l_l3>;
 	vdda-phy-max-microamp = <90200>;
 	vdda-pll-max-microamp = <19000>;
@@ -276,7 +271,8 @@
 	vdd-hba-supply = <&ufs_phy_gdsc>;
 	vdd-hba-fixed-regulator;
 	vcc-supply = <&pm8150_l10>;
-	vcc-voltage-level = <2950000 2960000>;
+	vcc-voltage-level = <2504000 2950000>;
+	vcc-low-voltage-sup;
 	vccq-supply = <&pm8150_l9>;
 	vccq2-supply = <&pm8150_s4>;
 	vcc-max-microamp = <750000>;
@@ -649,15 +645,6 @@
 
 &usb1 {
 	extcon = <&extcon_usb1>;
-	status = "ok";
-};
-
-&usb2_phy1 {
-	status = "ok";
-};
-
-&usb_qmp_phy {
-	status = "ok";
 };
 
 &smb1355 {

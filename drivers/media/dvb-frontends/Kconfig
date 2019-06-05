@@ -883,13 +883,6 @@ config DVB_AF9033
 	select REGMAP_I2C
 	default m if !MEDIA_SUBDRV_AUTOSELECT
 
-config DVB_HORUS3A
-	tristate "Sony Horus3A tuner"
-	depends on DVB_CORE && I2C
-	default m if !MEDIA_SUBDRV_AUTOSELECT
-	help
-	  Say Y when you want to support this frontend.
-
 config DVB_ASCOT2E
 	tristate "Sony Ascot2E tuner"
 	depends on DVB_CORE && I2C

@@ -1,4 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2015 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 #ifndef _UAPILINUX_KERNEL_PAGE_FLAGS_H
 #define _UAPILINUX_KERNEL_PAGE_FLAGS_H
 

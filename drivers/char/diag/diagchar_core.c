@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2019 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/slab.h>
 #include <linux/init.h>
@@ -3673,8 +3678,14 @@ exit:
 			copy_dci_data = 1;
 			exit_stat = diag_copy_dci(buf, count, entry, &ret);
 			mutex_lock(&driver->diagchar_mutex);
+/* SONY_BEGIN (Workaround for unable to receive log packet at the same time on SM8150 and SDX50M) */
+			if (driver->data_ready[index] & DCI_DATA_TYPE) {
+/* SONY_END (Workaround for unable to receive log packet at the same time on SM8150 and SDX50M) */
 			driver->data_ready[index] ^= DCI_DATA_TYPE;
 			atomic_dec(&driver->data_ready_notif[index]);
+/* SONY_BEGIN (Workaround for unable to receive log packet at the same time on SM8150 and SDX50M) */
+			}
+/* SONY_END (Workaround for unable to receive log packet at the same time on SM8150 and SDX50M) */
 			mutex_unlock(&driver->diagchar_mutex);
 			if (exit_stat == 1) {
 				mutex_unlock(&driver->dci_mutex);
