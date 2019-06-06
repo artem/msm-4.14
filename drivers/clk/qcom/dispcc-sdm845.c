@@ -333,7 +333,7 @@ static struct clk_rcg2 disp_cc_mdss_esc0_clk_src = {
 		.parent_names = disp_cc_parent_names_0,
 		.num_parents = 4,
 		.flags = CLK_SET_RATE_PARENT,
-		.ops = &clk_rcg2_ops,
+		.ops = &clk_esc_ops,
 		VDD_CX_FMAX_MAP1(
 			MIN, 19200000),
 	},
@@ -349,7 +349,7 @@ static struct clk_rcg2 disp_cc_mdss_esc1_clk_src = {
 		.parent_names = disp_cc_parent_names_0,
 		.num_parents = 4,
 		.flags = CLK_SET_RATE_PARENT,
-		.ops = &clk_rcg2_ops,
+		.ops = &clk_esc_ops,
 		VDD_CX_FMAX_MAP1(
 			MIN, 19200000),
 	},
