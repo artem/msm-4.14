@@ -345,7 +345,7 @@ static int spss_parse_dt(struct device_node *node)
 			     &spss_emul_type_reg_addr);
 	if (ret < 0) {
 		pr_err("can't get spss-emulation-type-reg addr\n");
-		return -EFAULT;
+		return 0;
 	}
 
 	spss_emul_type_reg = ioremap_nocache(spss_emul_type_reg_addr,
