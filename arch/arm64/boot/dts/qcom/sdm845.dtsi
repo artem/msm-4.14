@@ -2451,8 +2451,7 @@
 	};
 
 	sp_scsr: mailbox@188501c {
-		//TODO: fix driver for extra SPSS of_match
-		//compatible = "qcom,sm8150-spcs-global";
+		compatible = "qcom,sdm845-spss-shared";
 		reg = <0x188501c 0x4>;
 
 		#mbox-cells = <1>;
