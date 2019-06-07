@@ -1517,12 +1517,11 @@
 
 		vdd_cx-supply = <&pm8998_s9_level>;
 		qcom,vdd_cx-uV-uA = <RPMH_REGULATOR_LEVEL_TURBO 100000>;
-		//vdd_mx-supply = <&pm8998_s6_level>;
-		//qcom,vdd_mx-uV-uA = <RPMH_REGULATOR_LEVEL_TURBO 100000>;
+		vdd_mx-supply = <&pm8998_s6_level>;
+		qcom,vdd_mx-uV-uA = <RPMH_REGULATOR_LEVEL_TURBO 100000>;
 		vdd_mss-supply = <&pm8005_s2_level>;
 		qcom,vdd_mss-uV-uA = <RPMH_REGULATOR_LEVEL_TURBO 100000>;
-		//qcom,proxy-reg-names = "vdd_cx", "vdd_mx", "vdd_mss";
-		qcom,proxy-reg-names = "vdd_cx", "vdd_mss";
+		qcom,proxy-reg-names = "vdd_cx", "vdd_mx", "vdd_mss";
 
 		qcom,firmware-name = "modem";
 		qcom,proxy-timeout-ms = <10000>;
