@@ -520,9 +520,19 @@
 			reg = <0 0x85e00000 0 0x100000>;
 		};
 
-		removed_region: removed_region@85fc0000 {
+		removed_region1: removed_region@85fc0000 {
 			no-map;
-			reg = <0 0x85fc0000 0 0x2f40000>;
+			reg = <0 0x85fc0000 0 0x40000>;
+		};
+
+		smem_region: smem@86000000 {
+			no-map;
+			reg = <0x0 0x86000000 0x0 0x200000>;
+		};
+
+		removed_region2: removed_region@86200000 {
+			no-map;
+			reg = <0 0x86200000 0 0x2d00000>;
 		};
 
 		qseecom_mem: qseecom_region@0x8ab00000 {
@@ -654,11 +664,6 @@
 			alignment = <0 0x400000>;
 			size = <0 0x2000000>;
 			linux,cma-default;
-		};
-
-		smem_region: smem@86000000 {
-			reg = <0x0 0x86000000 0x0 0x200000>;
-			no-map;
 		};
 	};
 };
