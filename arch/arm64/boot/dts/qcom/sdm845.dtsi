@@ -3170,12 +3170,6 @@
 			     <0 424 0 /* CE10 */ >,
 			     <0 425 0 /* CE11 */ >;
 		qcom,wlan-msa-memory = <0x100000>;
-		qcom,smp2p_map_wlan_1_in {
-			interrupts-extended = <&smp2p_wlan_1_in 0 0>,
-					      <&smp2p_wlan_1_in 1 0>;
-			interrupt-names = "qcom,smp2p-force-fatal-error",
-					  "qcom,smp2p-early-crash-ind";
-		};
 
 		vdd-0.8-cx-mx-supply = <&pm8998_l5>;
 		vdd-1.8-xo-supply = <&pm8998_l7>;
@@ -3183,6 +3177,12 @@
 		vdd-3.3-ch0-supply = <&pm8998_l25>;
 		qcom,vdd-0.8-cx-mx-config = <800000 800000>;
 		qcom,vdd-3.3-ch0-config = <3104000 3312000>;
+		qcom,smp2p_map_wlan_1_in {
+			interrupts-extended = <&smp2p_wlan_1_in 0 0>,
+					      <&smp2p_wlan_1_in 1 0>;
+			interrupt-names = "qcom,smp2p-force-fatal-error",
+					  "qcom,smp2p-early-crash-ind";
+		};
 	};
 
 	qmi-tmd-devices {
