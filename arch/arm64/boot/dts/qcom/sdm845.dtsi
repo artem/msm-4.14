@@ -2198,9 +2198,9 @@
 
 		qcom,qsee-ipc-irq-spss {
 			qcom,dev-name = "qsee_ipc_irq_spss";
-			interrupt-parent = <&intsp>;
-			interrupts = <0 349 4>;
 			label = "spss";
+			interrupt-parent = <&intsp>;
+			interrupts = <1 0 IRQ_TYPE_LEVEL_HIGH>;
 		};
 	};
 
