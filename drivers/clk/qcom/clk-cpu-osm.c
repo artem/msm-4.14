@@ -85,6 +85,7 @@ struct clk_osm {
 static bool is_sdmshrike;
 static bool is_sm6150;
 static bool is_sdmmagpie;
+static bool is_sdm845;
 
 static inline struct clk_osm *to_clk_osm(struct clk_hw *_hw)
 {
@@ -1014,7 +1015,7 @@ static int clk_osm_resources_init(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	if (is_sdmshrike || is_sm6150 || is_sdmmagpie)
+	if (is_sdmshrike || is_sm6150 || is_sdmmagpie || is_sdm845)
 		return 0;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
@@ -1077,6 +1078,14 @@ static int clk_cpu_osm_driver_probe(struct platform_device *pdev)
 		.get_cpu_cycle_counter = clk_osm_get_cpu_cycle_counter,
 	};
 
+	if (of_device_is_compatible(pdev->dev.of_node, "qcom,clk-cpu-osm-sdm845")) {
+		dev_err(&pdev->dev, "OSM CPUFreq Setup for SDM845 V1 is not supported!\n");
+		return -EINVAL;
+	}
+
+	is_sdm845 = of_device_is_compatible(pdev->dev.of_node,
+				"qcom,clk-cpu-osm-sdm845-v2");
+
 	is_sdmmagpie = of_device_is_compatible(pdev->dev.of_node,
 				"qcom,clk-cpu-osm-sdmmagpie");
 
@@ -1085,7 +1094,7 @@ static int clk_cpu_osm_driver_probe(struct platform_device *pdev)
 
 	is_sdmshrike = of_device_is_compatible(pdev->dev.of_node,
 				"qcom,clk-cpu-osm-sdmshrike");
-	if (is_sdmshrike)
+	if (is_sdmshrike || is_sdm845)
 		clk_cpu_osm_driver_sdmshrike_fixup();
 	else if (is_sm6150 || is_sdmmagpie)
 		clk_cpu_osm_driver_sm6150_fixup();
@@ -1140,7 +1149,7 @@ static int clk_cpu_osm_driver_probe(struct platform_device *pdev)
 		return rc;
 	}
 
-	if (!is_sdmshrike && !is_sm6150 && !is_sdmmagpie) {
+	if (!is_sdmshrike && !is_sm6150 && !is_sdmmagpie && !is_sdm845) {
 		rc = clk_osm_read_lut(pdev, &perfpcl_clk);
 		if (rc) {
 			dev_err(&pdev->dev, "Unable to read OSM LUT for perf plus cluster, rc=%d\n",
@@ -1214,6 +1223,8 @@ exit:
 
 static const struct of_device_id match_table[] = {
 	{ .compatible = "qcom,clk-cpu-osm" },
+	{ .compatible = "qcom,clk-cpu-osm-sdm845" },
+	{ .compatible = "qcom,clk-cpu-osm-sdm845-v2" },
 	{ .compatible = "qcom,clk-cpu-osm-sm6150" },
 	{ .compatible = "qcom,clk-cpu-osm-sdmmagpie" },
 	{ .compatible = "qcom,clk-cpu-osm-sdmshrike" },
