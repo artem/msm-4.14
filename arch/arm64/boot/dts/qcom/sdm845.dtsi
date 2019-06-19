@@ -1261,7 +1261,7 @@
 	};
 
 	clock_cpucc: qcom,cpucc@0x17d41000 {
-		compatible = "qcom,clk-cpu-osm";
+		compatible = "qcom,clk-cpu-osm-sdm845";
 		reg = <0x17d41000 0x1400>,
 			<0x17d43000 0x1400>,
 			<0x17d45800 0x1400>;
