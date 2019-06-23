@@ -141,6 +141,24 @@ static inline bool is_better_rate(unsigned long req, unsigned long best,
 	return (req <= new && new < best) || (best < req && best < new);
 }
 
+static int clk_osm_set_rate(struct clk_hw *hw, unsigned long rate,
+				unsigned long parent_rate)
+{
+	struct clk_osm *c = to_clk_osm(hw);
+
+	c->rate = rate;
+
+	return 0;
+}
+
+static unsigned long clk_osm_recalc_rate(struct clk_hw *hw,
+				unsigned long parent_rate)
+{
+	struct clk_osm *c = to_clk_osm(hw);
+
+	return c->rate;
+}
+
 static long clk_osm_round_rate(struct clk_hw *hw, unsigned long rate,
 				unsigned long *parent_rate)
 {
@@ -184,7 +202,9 @@ static int clk_osm_search_table(struct osm_entry *table, int entries, long rate)
 }
 
 static const struct clk_ops clk_ops_cpu_osm = {
+	.set_rate = clk_osm_set_rate,
 	.round_rate = clk_osm_round_rate,
+	.recalc_rate = clk_osm_recalc_rate,
 	.list_rate = clk_osm_list_rate,
 	.debug_init = clk_debug_measure_add,
 };
