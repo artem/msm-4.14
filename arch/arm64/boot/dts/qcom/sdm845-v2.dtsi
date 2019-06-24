@@ -313,7 +313,7 @@
 };
 
 &clock_gcc {
-	compatible = "qcom,gcc-sm8150-v2", "syscon";
+	compatible = "qcom,gcc-sdm845-v2", "syscon";
 };
 
 &clock_camcc {

@@ -11,7 +11,7 @@
  * GNU General Public License for more details.
  */
 
-#include <dt-bindings/clock/qcom,gcc-sm8150.h>
+#include <dt-bindings/clock/qcom,gcc-sdm845.h>
 #include <dt-bindings/msm/msm-bus-ids.h>
 
 &soc {
