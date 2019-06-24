@@ -12,7 +12,7 @@
 
 #include <dt-bindings/msm/msm-bus-ids.h>
 #include <dt-bindings/soc/qcom,tcs-mbox.h>
-#include <dt-bindings/clock/qcom,gcc-sdm845.h>
+#include <dt-bindings/clock/qcom,gcc-sm8150.h>
 
 &soc {
 	ad_hoc_bus: ad-hoc-bus {

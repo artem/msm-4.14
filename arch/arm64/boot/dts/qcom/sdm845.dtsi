@@ -11,7 +11,7 @@
  */
 
 #include "skeleton64.dtsi"
-#include <dt-bindings/clock/qcom,gcc-sdm845.h>
+#include <dt-bindings/clock/qcom,gcc-sm8150.h>
 #include <dt-bindings/clock/qcom,camcc-sdm845.h>
 #include <dt-bindings/clock/qcom,dispcc-sdm845.h>
 #include <dt-bindings/clock/qcom,gpucc-sdm845.h>
@@ -1183,7 +1183,7 @@
 	};
 
 	clock_gcc: qcom,gcc@100000 {
-		compatible = "qcom,gcc-sdm845", "syscon";
+		compatible = "qcom,gcc-sm8150", "syscon";
 		reg = <0x100000 0x1f0000>;
 		reg-names = "cc_base";
 		vdd_cx-supply = <&pm8998_s9_level>;
@@ -1278,7 +1278,7 @@
 	};
 
 	clock_debug: qcom,cc-debug@100000 {
-		compatible = "qcom,debugcc-sdm845";
+		compatible = "qcom,debugcc-sm8150";
 		qcom,cc-count = <6>;
 		qcom,gcc = <&clock_gcc>;
 		qcom,videocc = <&clock_videocc>;
