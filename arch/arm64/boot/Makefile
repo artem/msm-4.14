@@ -18,15 +18,16 @@ include $(srctree)/arch/arm64/boot/dts/Makefile
 
 OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 
-targets := Image Image.gz
+targets := Image Image.gz Image.lz4
 
 DTB_NAMES := $(subst $\",,$(CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES))
 ifneq ($(DTB_NAMES),)
 DTB_LIST := $(addsuffix .dtb,$(DTB_NAMES))
+DTB_OBJS := $(addprefix $(obj)/dts/,$(DTB_LIST))
 else
-DTB_LIST := $(dtb-y)
-endif
 DTB_OBJS := $(shell find $(obj)/dts/ -name \*.dtb)
+endif
+DTBO_OBJS := $(shell find -L $(obj)/dts/ -name \*.dtbo)
 
 # Add RTIC DTB to the DTB list if RTIC MPGen is enabled
 ifdef RTIC_MPGEN
@@ -45,11 +46,7 @@ $(obj)/Image: vmlinux FORCE
 $(obj)/Image.bz2: $(obj)/Image FORCE
 	$(call if_changed,bzip2)
 
-$(obj)/Image-dtb-hdr: $(obj)/Image FORCE
-	echo -n 'UNCOMPRESSED_IMG' > $@ && \
-	$(call size_append, $(filter-out FORCE,$^)) >> $@
-
-$(obj)/Image-dtb: $(obj)/Image-dtb-hdr $(obj)/Image $(DTB_OBJS) FORCE
+$(obj)/Image-dtb: $(obj)/Image $(DTB_OBJS) FORCE
 	$(call if_changed,cat)
 
 $(obj)/Image.gz: $(obj)/Image FORCE
@@ -66,6 +63,16 @@ $(obj)/Image.lzo: $(obj)/Image FORCE
 
 $(obj)/Image.gz-dtb: $(obj)/Image.gz $(DTB_OBJS) FORCE
 	$(call if_changed,cat)
+
+$(obj)/Image.lz4-dtb: $(obj)/Image.lz4 $(DTB_OBJS) FORCE
+	$(call if_changed,cat)
+
+ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
+ifeq ($(CONFIG_BOARD_B1C1),y)
+$(obj)/dtbo.img: $(obj)/dts/dtboimg.cfg $(DTBO_OBJS) FORCE
+	$(call if_changed,mkdtimg,4096) # align dtbo.img to 4kB
+endif
+endif
 
 install:
 	$(CONFIG_SHELL) $(srctree)/$(src)/install.sh $(KERNELRELEASE) \
