@@ -196,8 +196,6 @@ dtb-$(CONFIG_ARCH_SDXPRAIRIE) += sdxprairie-rumi.dtb \
 	sdxprairie-mtp.dtb
 endif
 
-dtb-$(CONFIG_ARCH_SDM845) += sdm845-v2.1.dtb
-
 ifeq ($(CONFIG_ARM64),y)
 always		:= $(dtb-y)
 subdir-y	:= $(dts-dirs)
