@@ -221,6 +221,10 @@ struct smb_irq_info {
 	int			irq;
 };
 
+struct smb_iio {
+	struct iio_channel	*temp_max_chan;
+};
+
 struct smb_dt_props {
 	bool	disable_ctm;
 	int	pl_mode;
@@ -238,6 +242,7 @@ struct smb1355 {
 
 	struct smb_dt_props	dt;
 	struct smb_params	param;
+	struct smb_iio		iio;
 
 	struct mutex		write_lock;
 
@@ -245,7 +250,6 @@ struct smb1355 {
 	struct pmic_revid_data	*pmic_rev_id;
 
 	int			c_health;
-	int			c_charger_temp_max;
 	int			die_temp_deciDegC;
 	int			suspended_usb_icl;
 	bool			exit_die_temp;
@@ -593,6 +597,23 @@ static int smb1355_get_prop_health(struct smb1355 *chip, int type)
 	return POWER_SUPPLY_HEALTH_COOL;
 }
 
+static int smb1355_get_prop_charger_temp_max(struct smb1355 *chip,
+				union power_supply_propval *val)
+{
+	int rc;
+
+	if (!chip->iio.temp_max_chan ||
+		PTR_ERR(chip->iio.temp_max_chan) == -EPROBE_DEFER)
+		chip->iio.temp_max_chan = devm_iio_channel_get(chip->dev,
+							"charger_temp_max");
+	if (IS_ERR(chip->iio.temp_max_chan))
+		return PTR_ERR(chip->iio.temp_max_chan);
+
+	rc = iio_read_channel_processed(chip->iio.temp_max_chan, &val->intval);
+	val->intval /= 100;
+	return rc;
+}
+
 #define MIN_PARALLEL_ICL_UA		250000
 #define SUSPEND_CURRENT_UA		2000
 static int smb1355_parallel_get_prop(struct power_supply *psy,
@@ -632,7 +653,7 @@ static int smb1355_parallel_get_prop(struct power_supply *psy,
 		if (chip->dt.hw_die_temp_mitigation)
 			val->intval = -EINVAL;
 		else
-			val->intval = chip->c_charger_temp_max;
+			rc = smb1355_get_prop_charger_temp_max(chip, val);
 		break;
 	case POWER_SUPPLY_PROP_INPUT_SUSPEND:
 		val->intval = chip->disabled;
@@ -839,8 +860,6 @@ static int smb1355_parallel_set_prop(struct power_supply *psy,
 		chip->c_health = val->intval;
 		power_supply_changed(chip->parallel_psy);
 		break;
-	case POWER_SUPPLY_PROP_CHARGER_TEMP_MAX:
-		chip->c_charger_temp_max = val->intval;
 	case POWER_SUPPLY_PROP_SET_SHIP_MODE:
 		if (!val->intval)
 			break;
@@ -1381,7 +1400,6 @@ static int smb1355_probe(struct platform_device *pdev)
 	chip->dev = &pdev->dev;
 	chip->param = v1_params;
 	chip->c_health = -EINVAL;
-	chip->c_charger_temp_max = -EINVAL;
 	mutex_init(&chip->write_lock);
 	INIT_DELAYED_WORK(&chip->die_temp_work, die_temp_work);
 	chip->disabled = true;
