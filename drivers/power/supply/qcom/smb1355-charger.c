@@ -33,7 +33,6 @@
 /* SMB1355 registers, different than mentioned in smb-reg.h */
 
 #define REVID_BASE	0x0100
-#define I2C_SS_DIG_BASE 0x0E00
 #define CHGR_BASE	0x1000
 #define ANA2_BASE	0x1100
 #define BATIF_BASE	0x1200
@@ -41,11 +40,7 @@
 #define ANA1_BASE	0x1400
 #define MISC_BASE	0x1600
 
-#define REVID_MFG_ID_SPARE_REG                  (REVID_BASE + 0xFF)
-
-#define I2C_SS_DIG_PMIC_SID_REG			(I2C_SS_DIG_BASE + 0x45)
-#define PMIC_SID_MASK				GENMASK(3, 0)
-#define PMIC_SID0_BIT				BIT(0)
+#define REVID_MFG_ID_SPARE_REG			(REVID_BASE + 0xFF)
 
 #define BATTERY_STATUS_2_REG			(CHGR_BASE + 0x0B)
 #define DISABLE_CHARGING_BIT			BIT(3)
@@ -53,9 +48,6 @@
 #define BATTERY_STATUS_3_REG			(CHGR_BASE + 0x0C)
 #define BATT_GT_PRE_TO_FAST_BIT			BIT(4)
 #define ENABLE_CHARGING_BIT			BIT(3)
-
-#define CHGR_CHARGING_ENABLE_CMD_REG		(CHGR_BASE + 0x42)
-#define CHARGING_ENABLE_CMD_BIT			BIT(0)
 
 #define CHGR_CFG2_REG				(CHGR_BASE + 0x51)
 #define CHG_EN_SRC_BIT				BIT(7)
@@ -224,6 +216,10 @@ struct smb_irq_info {
 	int			irq;
 };
 
+struct smb_iio {
+	struct iio_channel	*temp_max_chan;
+};
+
 struct smb_dt_props {
 	bool	disable_ctm;
 	int	pl_mode;
@@ -241,6 +237,7 @@ struct smb1355 {
 
 	struct smb_dt_props	dt;
 	struct smb_params	param;
+	struct smb_iio		iio;
 
 	struct mutex		write_lock;
 
@@ -248,7 +245,6 @@ struct smb1355 {
 	struct pmic_revid_data	*pmic_rev_id;
 
 	int			c_health;
-	int			c_charger_temp_max;
 	int			die_temp_deciDegC;
 	int			suspended_usb_icl;
 	bool			exit_die_temp;
@@ -596,6 +592,23 @@ static int smb1355_get_prop_health(struct smb1355 *chip, int type)
 	return POWER_SUPPLY_HEALTH_COOL;
 }
 
+static int smb1355_get_prop_charger_temp_max(struct smb1355 *chip,
+				union power_supply_propval *val)
+{
+	int rc;
+
+	if (!chip->iio.temp_max_chan ||
+		PTR_ERR(chip->iio.temp_max_chan) == -EPROBE_DEFER)
+		chip->iio.temp_max_chan = devm_iio_channel_get(chip->dev,
+							"charger_temp_max");
+	if (IS_ERR(chip->iio.temp_max_chan))
+		return PTR_ERR(chip->iio.temp_max_chan);
+
+	rc = iio_read_channel_processed(chip->iio.temp_max_chan, &val->intval);
+	val->intval /= 100;
+	return rc;
+}
+
 #define MIN_PARALLEL_ICL_UA		250000
 #define SUSPEND_CURRENT_UA		2000
 static int smb1355_parallel_get_prop(struct power_supply *psy,
@@ -635,7 +648,7 @@ static int smb1355_parallel_get_prop(struct power_supply *psy,
 		if (chip->dt.hw_die_temp_mitigation)
 			val->intval = -EINVAL;
 		else
-			val->intval = chip->c_charger_temp_max;
+			rc = smb1355_get_prop_charger_temp_max(chip, val);
 		break;
 	case POWER_SUPPLY_PROP_INPUT_SUSPEND:
 		val->intval = chip->disabled;
@@ -842,8 +855,6 @@ static int smb1355_parallel_set_prop(struct power_supply *psy,
 		chip->c_health = val->intval;
 		power_supply_changed(chip->parallel_psy);
 		break;
-	case POWER_SUPPLY_PROP_CHARGER_TEMP_MAX:
-		chip->c_charger_temp_max = val->intval;
 	case POWER_SUPPLY_PROP_SET_SHIP_MODE:
 		if (!val->intval)
 			break;
@@ -1034,15 +1045,6 @@ static int smb1355_init_hw(struct smb1355 *chip)
 	if (rc < 0)
 		return rc;
 
-	/* Change to let SMB1355 only respond to address 0x0C  */
-	rc = smb1355_masked_write(chip, I2C_SS_DIG_PMIC_SID_REG,
-					PMIC_SID_MASK, PMIC_SID0_BIT);
-	if (rc < 0) {
-		pr_err("Couldn't configure the I2C_SS_DIG_PMIC_SID_REG rc=%d\n",
-					rc);
-		return rc;
-	}
-
 	/* enable watchdog bark and bite interrupts, and disable the watchdog */
 	rc = smb1355_masked_write(chip, WD_CFG_REG, WDOG_TIMER_EN_BIT
 			| WDOG_TIMER_EN_ON_PLUGIN_BIT | BITE_WDOG_INT_EN_BIT
@@ -1062,17 +1064,7 @@ static int smb1355_init_hw(struct smb1355 *chip)
 		return rc;
 	}
 
-	/*
-	 * Disable command based SMB1355 enablement and disable parallel
-	 * charging path by switching to command based mode.
-	 */
-	rc = smb1355_masked_write(chip, CHGR_CHARGING_ENABLE_CMD_REG,
-				CHARGING_ENABLE_CMD_BIT, 0);
-	if (rc < 0) {
-		pr_err("Coudln't configure command bit, rc=%d\n", rc);
-		return rc;
-	}
-
+	/* disable parallel charging path */
 	rc = smb1355_set_parallel_charging(chip, true);
 	if (rc < 0) {
 		pr_err("Couldn't disable parallel path rc=%d\n", rc);
@@ -1394,10 +1386,9 @@ static int smb1355_probe(struct platform_device *pdev)
 	chip->dev = &pdev->dev;
 	chip->param = v1_params;
 	chip->c_health = -EINVAL;
-	chip->c_charger_temp_max = -EINVAL;
 	mutex_init(&chip->write_lock);
 	INIT_DELAYED_WORK(&chip->die_temp_work, die_temp_work);
-	chip->disabled = false;
+	chip->disabled = true;
 	chip->die_temp_deciDegC = -EINVAL;
 
 	chip->regmap = dev_get_regmap(chip->dev->parent, NULL);
