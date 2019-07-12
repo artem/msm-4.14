@@ -25,6 +25,10 @@
 	qcom,dsi-display-active;
 };
 
+&sde_dsi {
+	pinctrl-0 = <&sde_dsi_active &sde_te_active &se8_spiflash>;
+};
+
 /* This overylay is required in order for acdbloader to load different files */
 &soc {
 	sound-tavil {
