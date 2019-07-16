@@ -18,6 +18,7 @@
 #include <linux/module.h>
 #include <linux/mutex.h>
 #include <linux/rtc.h>
+#include <linux/sched/clock.h>
 #include <linux/seq_file.h>
 #include <linux/suspend.h>
 #include <linux/slab.h>
