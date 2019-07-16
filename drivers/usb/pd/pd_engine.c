@@ -2083,7 +2083,7 @@ struct usbpd *usbpd_create(struct device *parent)
 		goto exit_debugfs;
 	}
 
-	pd->extcon->mutually_exclusive = usbpd_extcon_exclusive;
+	//pd->extcon->mutually_exclusive = usbpd_extcon_exclusive;
 	ret = devm_extcon_dev_register(parent, pd->extcon);
 	if (ret < 0) {
 		logbuffer_log(pd->log, "failed to register extcon device");
