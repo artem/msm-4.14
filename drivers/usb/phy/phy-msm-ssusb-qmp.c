@@ -1255,9 +1255,9 @@ static int msm_ssphy_qmp_probe(struct platform_device *pdev)
 	phy->link_training_reset = of_property_read_bool(dev->of_node,
 					"qcom,link-training-reset");
 
-	//ret = msm_ssphy_qmp_extcon_register(phy, dev);
-	//if (ret)
-	//	goto err;
+	ret = msm_ssphy_qmp_extcon_register(phy, dev);
+	if (ret)
+		goto err;
 
 	ret = usb_add_phy_dev(&phy->phy);
 
