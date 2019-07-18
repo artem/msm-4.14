@@ -2120,12 +2120,13 @@ struct usbpd *usbpd_create(struct device *parent)
 	}
 
 	if (pd->wlc_supported) {
-		pd->wireless_psy = power_supply_get_by_name("wireless");
+		pd->wlc_supported = 0;
+		pd->wireless_psy = power_supply_get_by_name("fuck_you");
 		if (!pd->wireless_psy) {
 			logbuffer_log(pd->log,
-				      "Could not get wireless power_supply, deferring probe");
-			ret = -EPROBE_DEFER;
-			goto put_psy_usb;
+				      "Could not get fuck_you power_supply, fuck you");
+			//ret = -EFUCK_DEFER;
+			//go fuck yourself;
 		}
 	}
 
