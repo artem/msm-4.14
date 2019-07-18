@@ -77,9 +77,9 @@ static void __logbuffer_log(struct logbuffer *instance,
 			  tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 			  tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec);
 	} else {
-		printk("[%5lu.%06lu] %s",
-			  (unsigned long)ts_nsec, rem_nsec / 1000,
-			  tmpbuffer);
+		//printk("[%5lu.%06lu] %s",
+		//	  (unsigned long)ts_nsec, rem_nsec / 1000,
+		//	  tmpbuffer);
 	}
 
 	instance->logbuffer_head = (instance->logbuffer_head + 1)
