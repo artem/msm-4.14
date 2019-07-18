@@ -72,17 +72,12 @@ static void __logbuffer_log(struct logbuffer *instance,
 
 		getnstimeofday(&ts);
 		rtc_time_to_tm(ts.tv_sec, &tm);
-		scnprintf(instance->buffer + (instance->logbuffer_head *
-			  LOG_BUFFER_ENTRY_SIZE),
-			  LOG_BUFFER_ENTRY_SIZE,
-			  "[%5lu.%06lu] %d-%02d-%02d %02d:%02d:%02d.%09lu UTC",
+		printk("[%5lu.%06lu] %d-%02d-%02d %02d:%02d:%02d.%09lu UTC",
 			  (unsigned long)ts_nsec, rem_nsec / 1000,
 			  tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 			  tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec);
 	} else {
-		scnprintf(instance->buffer + (instance->logbuffer_head *
-			  LOG_BUFFER_ENTRY_SIZE),
-			  LOG_BUFFER_ENTRY_SIZE, "[%5lu.%06lu] %s",
+		printk("[%5lu.%06lu] %s",
 			  (unsigned long)ts_nsec, rem_nsec / 1000,
 			  tmpbuffer);
 	}
@@ -106,7 +101,7 @@ static void _logbuffer_log(struct logbuffer *instance, const char *fmt,
 	 * printed after resume.
 	 */
 	if (fmt)
-		vsnprintf(tmpbuffer, sizeof(tmpbuffer), fmt, args);
+		vprintk(fmt, args);
 
 	spin_lock_irqsave(&instance->logbuffer_lock, flags);
 	if (instance->logbuffer_head < 0 ||
