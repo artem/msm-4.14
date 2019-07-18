@@ -8,6 +8,7 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  */
+#define DEBUG
 #include <linux/kernel.h>
 #include <linux/export.h>
 #include <linux/err.h>
