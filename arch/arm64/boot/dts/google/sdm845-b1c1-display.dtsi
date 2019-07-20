@@ -169,7 +169,7 @@
 &pmi8998_wled {
 	status = "okay";
 	qcom,disp-type-amoled;
-	qcom,led-strings-list = [02 03];
+	qcom,string-cfg = <12>;
 	qcom,avdd-target-voltage-mv = <7600>;
 	qcom,en-cabc;
 };
