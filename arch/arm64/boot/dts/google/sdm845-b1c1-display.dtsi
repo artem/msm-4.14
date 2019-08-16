@@ -85,8 +85,7 @@
 		pinctrl-0 = <&sde_dsi_active &sde_te_active>;
 		pinctrl-1 = <&sde_dsi_suspend &sde_te_suspend>;
 
-		// Disabled, see https://android.googlesource.com/kernel/msm/+/1a1a113bf73c
-		// qcom,platform-te-gpio = <&tlmm 12 0>;
+		qcom,platform-te-gpio = <&tlmm 12 0>;
 		qcom,panel-te-source = <2>;
 
 		vddi-supply = <&pm8998_l14>;
