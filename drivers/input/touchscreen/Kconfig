@@ -20,7 +20,7 @@ config TOUCHSCREEN_PROPERTIES
 
 config TOUCHSCREEN_TBN
 	tristate "Touch Bus Negotiator for Pixel 2018"
-	depends on QCOM_QMI_HELPERS
+	depends on QCOM_QMI_HELPERS && BROKEN
 	help
 	  Say Y here if you have a Google Pixel 2018 device. This module enables
 	  support for kernel touch drivers to coordinate bus access with remote
