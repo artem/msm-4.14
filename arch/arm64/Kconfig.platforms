@@ -149,6 +149,60 @@ config ARCH_SM8150
 	  This enables support for the SM8150 chipset. If you do not
 	  wish to build a kernel that runs on this chipset, say 'N' here.
 
+config ARCH_SONY_KUMANO
+	bool "Sony Mobile Kumano platform"
+	depends on ARCH_SM8150
+	help
+	Support for the SONY Mobile Kumano platform
+	which is based on QCOM SM8150 chipset.
+	If you enable this config,
+	please use SONY Mobile device tree.
+
+config MACH_SONY_GRIFFIN
+	bool "Sony Mobile Griffin"
+	depends on ARCH_SONY_KUMANO
+	help
+	Support for the SONY Mobile Griffin device
+	which is based on SONY Kumano platform.
+	If you enable this config,
+	please use SONY Mobile device tree.
+
+config MACH_SONY_GRIFFIN_K
+	bool "Sony Mobile Griffin K"
+	depends on ARCH_SONY_KUMANO
+	help
+	Support for the SONY Mobile Griffin K device
+	which is based on SONY Kumano platform.
+	If you enable this config,
+	please use SONY Mobile device tree.
+
+config MACH_SONY_GRIFFIN_N
+	bool "Sony Mobile Griffin N"
+	depends on ARCH_SONY_KUMANO
+	help
+	Support for the SONY Mobile Griffin N device
+	which is based on SONY Kumano platform.
+	If you enable this config,
+	please use SONY Mobile device tree.
+
+config MACH_SONY_GRIFFIN_S
+	bool "Sony Mobile Griffin S"
+	depends on ARCH_SONY_KUMANO
+	help
+	Support for the SONY Mobile Griffin S device
+	which is based on SONY Kumano platform.
+	If you enable this config,
+	please use SONY Mobile device tree.
+
+config MACH_SONY_BAHAMUT
+	bool "Sony Mobile Bahamut"
+	depends on ARCH_SONY_KUMANO
+	help
+	Support for the SONY Mobile Bahamut device
+	which is based on SONY Kumano platform.
+	If you enable this config,
+	please use SONY Mobile device tree.
+
 config ARCH_SDMSHRIKE
 	bool "Enable Support for Qualcomm Technologies, Inc. SDMSHRIKE"
 	depends on ARCH_QCOM

@@ -11,6 +11,11 @@
  * GNU General Public License for more details.
  *
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #define pr_fmt(fmt)	"[drm-dp] %s: " fmt, __func__
 
@@ -2577,47 +2582,22 @@ static void dp_panel_config_misc(struct dp_panel *dp_panel)
 	catalog->config_misc(catalog);
 }
 
-static bool dp_panel_use_fixed_nvid(struct dp_panel *dp_panel)
-{
-	u8 *dpcd = dp_panel->dpcd;
-	struct sde_connector *c_conn = to_sde_connector(dp_panel->connector);
-
-	/* use fixe mvid and nvid for MST streams */
-	if (c_conn->mst_port)
-		return true;
-
-	/*
-	 * For better interop experience, used a fixed NVID=0x8000
-	 * whenever connected to a VGA dongle downstream.
-	 */
-	if (dpcd[DP_DOWNSTREAMPORT_PRESENT] & DP_DWN_STRM_PORT_PRESENT) {
-		u8 type = dpcd[DP_DOWNSTREAMPORT_PRESENT] &
-			DP_DWN_STRM_PORT_TYPE_MASK;
-		if (type == DP_DWN_STRM_PORT_TYPE_ANALOG)
-			return true;
-	}
-
-	return false;
-}
-
 static void dp_panel_config_msa(struct dp_panel *dp_panel)
 {
 	struct dp_panel_private *panel;
 	struct dp_catalog_panel *catalog;
 	u32 rate;
 	u32 stream_rate_khz;
-	bool fixed_nvid;
 
 	panel = container_of(dp_panel, struct dp_panel_private, dp_panel);
 	catalog = panel->catalog;
 
 	catalog->widebus_en = dp_panel->widebus_en;
 
-	fixed_nvid = dp_panel_use_fixed_nvid(dp_panel);
 	rate = drm_dp_bw_code_to_link_rate(panel->link->link_params.bw_code);
 	stream_rate_khz = dp_panel->pinfo.pixel_clk_khz;
 
-	catalog->config_msa(catalog, rate, stream_rate_khz, fixed_nvid);
+	catalog->config_msa(catalog, rate, stream_rate_khz);
 }
 
 static int dp_panel_hw_cfg(struct dp_panel *dp_panel, bool enable)
@@ -2820,7 +2800,7 @@ struct dp_panel *dp_panel_get(struct dp_panel_in *in)
 	panel->parser = in->parser;
 
 	dp_panel = &panel->dp_panel;
-	dp_panel->max_bw_code = DP_LINK_BW_8_1;
+	dp_panel->max_bw_code = DP_LINK_BW_5_4;
 	dp_panel->spd_enabled = true;
 	memcpy(panel->spd_vendor_name, vendor_name, (sizeof(u8) * 8));
 	memcpy(panel->spd_product_description, product_desc, (sizeof(u8) * 16));

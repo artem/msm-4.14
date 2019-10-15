@@ -10,6 +10,11 @@
  * GNU General Public License for more details.
  *
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2019 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #define pr_fmt(fmt) "%s:%s " fmt, KBUILD_MODNAME, __func__
 
@@ -51,6 +56,7 @@ enum qmi_ts_sensor {
 	QMI_TS_MODEM_SKIN,
 	QMI_TS_QFE_PA_MDM,
 	QMI_TS_QFE_PA_WTR,
+	QMI_TS_SDR054_THERM,
 	QMI_TS_MAX_NR
 };
 
@@ -95,6 +101,7 @@ static char sensor_clients[QMI_TS_MAX_NR][QMI_CLIENT_NAME_LENGTH] = {
 	{"xo_therm"},
 	{"qfe_pa_mdm"},
 	{"qfe_pa_wtr"},
+	{"sdr054_therm"},
 };
 
 static int32_t encode_qmi(int32_t val)

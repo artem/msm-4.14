@@ -1,5 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 /*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2017 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
+/*
  * Copyright (c) 1999-2002 Vojtech Pavlik
  *
  * This program is free software; you can redistribute it and/or modify it

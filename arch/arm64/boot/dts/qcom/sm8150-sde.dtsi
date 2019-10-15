@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 #include <dt-bindings/clock/mdss-10nm-pll-clk.h>
 
 &soc {
@@ -583,7 +588,7 @@
 		compatible = "qcom,dp-display";
 
 		vdda-1p2-supply = <&pm8150l_l3>;
-		vdda-0p9-supply = <&pm8150_l5>;
+		vdda-0p9-supply = <&pm8150_l18>;
 
 		reg =	<0xae90000 0x0dc>,
 			<0xae90200 0x0c0>,
@@ -669,7 +674,7 @@
 				reg = <0>;
 				qcom,supply-name = "vdda-0p9";
 				qcom,supply-min-voltage = <880000>;
-				qcom,supply-max-voltage = <880000>;
+				qcom,supply-max-voltage = <912000>;
 				qcom,supply-enable-load = <36000>;
 				qcom,supply-disable-load = <0>;
 			};

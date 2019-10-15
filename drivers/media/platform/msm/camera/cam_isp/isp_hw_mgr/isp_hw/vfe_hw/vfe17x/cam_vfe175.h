@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -51,8 +51,6 @@ static struct cam_vfe_camif_ver2_reg vfe175_camif_reg = {
 	.raw_crop_width_cfg       = 0x00000CE4,
 	.raw_crop_height_cfg      = 0x00000CE8,
 	.reg_update_cmd           = 0x000004AC,
-	.vfe_diag_config          = 0x00000C48,
-	.vfe_diag_sensor_status   = 0x00000C4C,
 };
 
 static struct cam_vfe_camif_reg_data vfe_175_camif_reg_data = {
@@ -82,7 +80,6 @@ static struct cam_vfe_camif_reg_data vfe_175_camif_reg_data = {
 	.eof_irq_mask                    = 0x00000002,
 	.error_irq_mask0                 = 0x0003FC00,
 	.error_irq_mask1                 = 0xEFFF7E80,
-	.enable_diagnostic_hw            = 0x1,
 };
 
 static struct cam_vfe_camif_lite_ver2_reg vfe175_camif_lite_reg = {
@@ -296,8 +293,6 @@ static struct cam_vfe_bus_ver2_hw_info vfe175_bus_hw_info = {
 		.addr_sync_cfg                = 0x0000207C,
 		.addr_sync_frame_hdr          = 0x00002080,
 		.addr_sync_no_sync            = 0x00002084,
-		.debug_status_cfg             = 0x0000226C,
-		.debug_status_0               = 0x00002270,
 	},
 	.num_client = 24,
 	.bus_client_reg = {

@@ -11,6 +11,11 @@
  * GNU General Public License for more details.
  *
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2019 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef _DP_USBPD_H_
 #define _DP_USBPD_H_
@@ -71,4 +76,8 @@ struct dp_usbpd {
 struct dp_hpd *dp_usbpd_get(struct device *dev, struct dp_hpd_cb *cb);
 
 void dp_usbpd_put(struct dp_hpd *pd);
+#ifdef CONFIG_DRM_SDE_SPECIFIC_PANEL
+
+void dp_usbpd_set_min_src_caps(struct dp_hpd *dp_hpd, const bool set);
+#endif /* CONFIG_DRM_SDE_SPECIFIC_PANEL */
 #endif /* _DP_USBPD_H_ */

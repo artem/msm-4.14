@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2019 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef __LINUX_USB_USBPD_H
 #define __LINUX_USB_USBPD_H
@@ -105,6 +110,13 @@ int usbpd_send_svdm(struct usbpd *pd, u16 svid, u8 cmd,
  *         otherwise ORIENTATION_NONE if not attached
  */
 enum plug_orientation usbpd_get_plug_orientation(struct usbpd *pd);
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+
+/*
+ * Set minimum src capability.
+ */
+void usbpd_set_min_src_caps(struct usbpd *pd, const bool set);
+#endif
 #else
 static inline struct usbpd *devm_usbpd_get_by_phandle(struct device *dev,
 		const char *phandle)
@@ -140,6 +152,12 @@ static inline enum plug_orientation usbpd_get_plug_orientation(struct usbpd *pd)
 {
 	return ORIENTATION_NONE;
 }
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+
+static inline void usbpd_set_min_src_caps(struct usbpd *pd, const bool set)
+{
+}
+#endif
 #endif /* IS_ENABLED(CONFIG_USB_PD_POLICY) */
 
 /*

@@ -11,6 +11,11 @@
  * GNU General Public License for more details.
  *
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #ifndef _DP_PANEL_H_
 #define _DP_PANEL_H_
@@ -212,8 +217,7 @@ static inline bool is_link_rate_valid(u32 bw_code)
 {
 	return ((bw_code == DP_LINK_BW_1_62) ||
 		(bw_code == DP_LINK_BW_2_7) ||
-		(bw_code == DP_LINK_BW_5_4) ||
-		(bw_code == DP_LINK_BW_8_1));
+		(bw_code == DP_LINK_BW_5_4));
 }
 
 /**

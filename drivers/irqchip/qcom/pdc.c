@@ -10,6 +10,11 @@
  * GNU General Public License for more details.
  *
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2019 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/delay.h>
 #include <linux/err.h>
@@ -304,6 +309,7 @@ int qcom_pdc_init(struct device_node *node,
 		goto failure;
 	}
 
+	kfree(pdc_domain->name);
 	pdc_domain->name = "qcom,pdc";
 
 	return 0;

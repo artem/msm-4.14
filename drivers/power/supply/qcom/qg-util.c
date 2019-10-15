@@ -368,7 +368,7 @@ int qg_get_battery_temp(struct qpnp_qg *chip, int *temp)
 	}
 	pr_debug("batt_temp = %d\n", *temp);
 
-	return 0;
+	return rc;
 }
 
 int qg_get_battery_current(struct qpnp_qg *chip, int *ibat_ua)

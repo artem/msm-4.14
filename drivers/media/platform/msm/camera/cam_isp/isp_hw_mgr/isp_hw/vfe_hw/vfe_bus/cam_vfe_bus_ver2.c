@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/ratelimit.h>
 #include <linux/slab.h>
@@ -1206,8 +1211,7 @@ static int cam_vfe_bus_start_wm(struct cam_isp_resource_node *wm_res)
 			cam_io_w_mb(val, common_data->mem_base +
 				ubwc_regs->mode_cfg_0);
 		} else if ((camera_hw_version == CAM_CPAS_TITAN_175_V100) ||
-			(camera_hw_version == CAM_CPAS_TITAN_175_V101) ||
-			(camera_hw_version == CAM_CPAS_TITAN_175_V120)) {
+			(camera_hw_version == CAM_CPAS_TITAN_175_V101)) {
 			struct cam_vfe_bus_ver2_reg_offset_ubwc_3_client
 				*ubwc_regs;
 
@@ -1359,12 +1363,26 @@ static int cam_vfe_bus_err_bottom_half(void *ctx_priv,
 	struct cam_vfe_bus_irq_evt_payload *evt_payload;
 	struct cam_vfe_bus_ver2_common_data *common_data;
 	uint32_t val = 0;
+/* sony extension begin */
+	uint32_t  *cam_ife_irq_regs = NULL;
+/* sony extension end */
 
 	if (!ctx_priv || !evt_payload_priv)
 		return -EINVAL;
 
 	evt_payload = evt_payload_priv;
 	common_data = evt_payload->ctx;
+
+/* sony extension begin */
+	cam_ife_irq_regs = evt_payload->irq_reg_val;
+	CAM_DBG(CAM_ISP, "status0 0x%x status1 0x%x status2 0x%x",
+		cam_ife_irq_regs[CAM_IFE_IRQ_BUS_REG_STATUS0],
+		cam_ife_irq_regs[CAM_IFE_IRQ_BUS_REG_STATUS1],
+		cam_ife_irq_regs[CAM_IFE_IRQ_BUS_REG_STATUS2]);
+	cam_ife_irq_regs[CAM_IFE_IRQ_BUS_REG_STATUS0] &= ~bus_error_irq_mask[0];
+	cam_ife_irq_regs[CAM_IFE_IRQ_BUS_REG_STATUS1] &= ~bus_error_irq_mask[1];
+	cam_ife_irq_regs[CAM_IFE_IRQ_BUS_REG_STATUS2] &= ~bus_error_irq_mask[2];
+/* sony extension end */
 
 	val = evt_payload->debug_status_0;
 	CAM_ERR(CAM_ISP, "Bus Violation: debug_status_0 = 0x%x", val);
@@ -2544,7 +2562,7 @@ static void cam_vfe_bus_update_ubwc_meta_addr(
 		CAM_ERR(CAM_ISP, "Failed to get HW version rc: %d", rc);
 		goto end;
 	} else if ((camera_hw_version < CAM_CPAS_TITAN_170_V100) ||
-		(camera_hw_version > CAM_CPAS_TITAN_175_V120)) {
+		(camera_hw_version > CAM_CPAS_TITAN_175_V101)) {
 		CAM_ERR(CAM_ISP, "Invalid HW version: %d",
 			camera_hw_version);
 		goto end;
@@ -2562,7 +2580,6 @@ static void cam_vfe_bus_update_ubwc_meta_addr(
 		break;
 	case CAM_CPAS_TITAN_175_V100:
 	case CAM_CPAS_TITAN_175_V101:
-	case CAM_CPAS_TITAN_175_V120:
 		ubwc_3_regs =
 			(struct cam_vfe_bus_ver2_reg_offset_ubwc_3_client *)
 			regs;
@@ -2646,10 +2663,10 @@ static int cam_vfe_bus_update_ubwc_3_regs(
 
 	switch (wm_data->format) {
 	case CAM_FORMAT_UBWC_TP10:
-		ubwc_bw_limit = (0x8 << 1) | BIT(0);
+		ubwc_bw_limit = 0x8 | BIT(0);
 		break;
 	case CAM_FORMAT_UBWC_NV12_4R:
-		ubwc_bw_limit = (0xB << 1) | BIT(0);
+		ubwc_bw_limit = 0xB | BIT(0);
 		break;
 	default:
 		ubwc_bw_limit = 0;
@@ -2788,7 +2805,6 @@ static int cam_vfe_bus_update_ubwc_regs(
 		break;
 	case CAM_CPAS_TITAN_175_V100:
 	case CAM_CPAS_TITAN_175_V101:
-	case CAM_CPAS_TITAN_175_V120:
 		rc = cam_vfe_bus_update_ubwc_3_regs(
 			wm_data, reg_val_pair, i, j);
 		break;
@@ -2841,7 +2857,7 @@ static int cam_vfe_bus_update_wm(void *priv, void *cmd_args,
 	for (i = 0, j = 0; i < vfe_out_data->num_wm; i++) {
 		if (j >= (MAX_REG_VAL_PAIR_SIZE - MAX_BUF_UPDATE_REG_NUM * 2)) {
 			CAM_ERR(CAM_ISP,
-				"reg_val_pair %d exceeds the array limit %zu",
+				"reg_val_pair %d exceeds the array limit %lu",
 				j, MAX_REG_VAL_PAIR_SIZE);
 			return -ENOMEM;
 		}
@@ -2866,8 +2882,14 @@ static int cam_vfe_bus_update_wm(void *priv, void *cmd_args,
 				io_cfg->planes[i].plane_stride,
 				val);
 
+/* sony extension begin */
+#if 1
+		if ((wm_data->index >= 3)) {
+#else
 		if ((wm_data->stride != val ||
 			!wm_data->init_cfg_done) && (wm_data->index >= 3)) {
+#endif
+/* sony extension end */
 			CAM_VFE_ADD_REG_VAL_PAIR(reg_val_pair, j,
 				wm_data->hw_regs->stride,
 				io_cfg->planes[i].plane_stride);
@@ -2998,7 +3020,7 @@ static int cam_vfe_bus_update_hfr(void *priv, void *cmd_args,
 	for (i = 0, j = 0; i < vfe_out_data->num_wm; i++) {
 		if (j >= (MAX_REG_VAL_PAIR_SIZE - MAX_BUF_UPDATE_REG_NUM * 2)) {
 			CAM_ERR(CAM_ISP,
-				"reg_val_pair %d exceeds the array limit %zu",
+				"reg_val_pair %d exceeds the array limit %lu",
 				j, MAX_REG_VAL_PAIR_SIZE);
 			return -ENOMEM;
 		}
@@ -3126,19 +3148,35 @@ static int cam_vfe_bus_update_ubwc_config(void *cmd_args)
 			goto end;
 		}
 
+/* sony extension begin */
+#if 0
 		if (wm_data->packer_cfg !=
 			ubwc_plane_cfg->packer_config ||
 			!wm_data->init_cfg_done) {
+#endif
+/* sony extension end */
 			wm_data->packer_cfg = ubwc_plane_cfg->packer_config;
 			wm_data->ubwc_updated = true;
+/* sony extension begin */
+#if 0
 		}
+#endif
+/* sony extension end */
 
+/* sony extension begin */
+#if 0
 		if ((!wm_data->is_dual) && ((wm_data->tile_cfg !=
 			ubwc_plane_cfg->tile_config)
 			|| !wm_data->init_cfg_done)) {
+#endif
+/* sony extension end */
 			wm_data->tile_cfg = ubwc_plane_cfg->tile_config;
 			wm_data->ubwc_updated = true;
+/* sony extension begin */
+#if 0
 		}
+#endif
+/* sony extension end */
 
 		if ((!wm_data->is_dual) && ((wm_data->h_init !=
 			ubwc_plane_cfg->h_init) ||
@@ -3153,28 +3191,52 @@ static int cam_vfe_bus_update_ubwc_config(void *cmd_args)
 			wm_data->ubwc_updated = true;
 		}
 
+/* sony extension begin */
+#if 0
 		if (wm_data->ubwc_meta_stride !=
 			ubwc_plane_cfg->meta_stride ||
 			!wm_data->init_cfg_done) {
+#endif
+/* sony extension end */
 			wm_data->ubwc_meta_stride = ubwc_plane_cfg->meta_stride;
 			wm_data->ubwc_updated = true;
+/* sony extension begin */
+#if 0
 		}
+#endif
+/* sony extension end */
 
+/* sony extension begin */
+#if 0
 		if (wm_data->ubwc_mode_cfg_0 !=
 			ubwc_plane_cfg->mode_config_0 ||
 			!wm_data->init_cfg_done) {
+#endif
+/* sony extension end */
 			wm_data->ubwc_mode_cfg_0 =
 				ubwc_plane_cfg->mode_config_0;
 			wm_data->ubwc_updated = true;
+/* sony extension begin */
+#if 0
 		}
+#endif
+/* sony extension end */
 
+/* sony extension begin */
+#if 0
 		if (wm_data->ubwc_mode_cfg_1 !=
 			ubwc_plane_cfg->mode_config_1 ||
 			!wm_data->init_cfg_done) {
+#endif
+/* sony extension end */
 			wm_data->ubwc_mode_cfg_1 =
 				ubwc_plane_cfg->mode_config_1;
 			wm_data->ubwc_updated = true;
+/* sony extension begin */
+#if 0
 		}
+#endif
+/* sony extension end */
 
 		if (wm_data->ubwc_meta_offset !=
 			ubwc_plane_cfg->meta_offset ||
@@ -3314,7 +3376,7 @@ static int cam_vfe_bus_deinit_hw(void *hw_priv,
 	void *deinit_hw_args, uint32_t arg_size)
 {
 	struct cam_vfe_bus_ver2_priv    *bus_priv = hw_priv;
-	int                              rc = 0, i;
+	int                              rc = 0;
 
 	if (!bus_priv) {
 		CAM_ERR(CAM_ISP, "Error: Invalid args");
@@ -3341,13 +3403,6 @@ static int cam_vfe_bus_deinit_hw(void *hw_priv,
 				"Failed to unsubscribe irq rc=%d", rc);
 
 		bus_priv->irq_handle = 0;
-	}
-
-	INIT_LIST_HEAD(&bus_priv->common_data.free_payload_list);
-	for (i = 0; i < CAM_VFE_BUS_VER2_PAYLOAD_MAX; i++) {
-		INIT_LIST_HEAD(&bus_priv->common_data.evt_payload[i].list);
-		list_add_tail(&bus_priv->common_data.evt_payload[i].list,
-			&bus_priv->common_data.free_payload_list);
 	}
 
 	return rc;

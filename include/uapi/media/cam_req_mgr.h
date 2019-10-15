@@ -244,7 +244,6 @@ struct cam_req_mgr_link_control {
 #define CAM_MEM_FLAG_PACKET_BUF_TYPE            (1<<9)
 #define CAM_MEM_FLAG_CACHE                      (1<<10)
 #define CAM_MEM_FLAG_HW_SHARED_ACCESS           (1<<11)
-#define CAM_MEM_FLAG_CDSP_OUTPUT                (1<<12)
 
 #define CAM_MEM_MMU_MAX_HANDLE                  16
 
@@ -262,9 +261,6 @@ struct cam_req_mgr_link_control {
 #define GET_MEM_HANDLE(idx, fd) \
 	((idx & CAM_MEM_MGR_HDL_IDX_MASK) | \
 	(fd << (CAM_MEM_MGR_HDL_FD_END_POS - CAM_MEM_MGR_HDL_FD_SIZE))) \
-
-#define GET_FD_FROM_HANDLE(hdl) \
-	(hdl >> (CAM_MEM_MGR_HDL_FD_END_POS - CAM_MEM_MGR_HDL_FD_SIZE)) \
 
 #define CAM_MEM_MGR_GET_HDL_IDX(hdl) (hdl & CAM_MEM_MGR_HDL_IDX_MASK)
 
@@ -383,12 +379,10 @@ struct cam_mem_cache_ops_cmd {
  * @CAM_REQ_MGR_ERROR_TYPE_DEVICE: Device error message, fatal to session
  * @CAM_REQ_MGR_ERROR_TYPE_REQUEST: Error on a single request, not fatal
  * @CAM_REQ_MGR_ERROR_TYPE_BUFFER: Buffer was not filled, not fatal
- * @CAM_REQ_MGR_ERROR_TYPE_RECOVERY: Fatal error, can be recovered
  */
 #define CAM_REQ_MGR_ERROR_TYPE_DEVICE           0
 #define CAM_REQ_MGR_ERROR_TYPE_REQUEST          1
 #define CAM_REQ_MGR_ERROR_TYPE_BUFFER           2
-#define CAM_REQ_MGR_ERROR_TYPE_RECOVERY         3
 
 /**
  * struct cam_req_mgr_error_msg

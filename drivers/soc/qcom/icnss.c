@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #define pr_fmt(fmt) "icnss: " fmt
 
@@ -39,6 +44,7 @@
 #include <linux/of.h>
 #include <linux/of_irq.h>
 #include <linux/soc/qcom/qmi.h>
+#include <linux/poll.h>
 #include <soc/qcom/memory_dump.h>
 #include <soc/qcom/icnss.h>
 #include <soc/qcom/secure_buffer.h>
@@ -606,6 +612,21 @@ bool icnss_is_fw_ready(void)
 }
 EXPORT_SYMBOL(icnss_is_fw_ready);
 
+void icnss_block_shutdown(bool status)
+{
+	if (!penv)
+		return;
+
+	if (status) {
+		set_bit(ICNSS_BLOCK_SHUTDOWN, &penv->state);
+		reinit_completion(&penv->unblock_shutdown);
+	} else {
+		clear_bit(ICNSS_BLOCK_SHUTDOWN, &penv->state);
+		complete(&penv->unblock_shutdown);
+	}
+}
+EXPORT_SYMBOL(icnss_block_shutdown);
+
 bool icnss_is_fw_down(void)
 {
 	if (!penv)
@@ -885,8 +906,7 @@ static int icnss_call_driver_probe(struct icnss_priv *priv)
 
 	icnss_hw_power_on(priv);
 
-	set_bit(ICNSS_DRIVER_LOADING, &priv->state);
-	reinit_completion(&penv->driver_probed);
+	icnss_block_shutdown(true);
 	while (probe_cnt < ICNSS_MAX_PROBE_CNT) {
 		ret = priv->ops->probe(&priv->pdev->dev);
 		probe_cnt++;
@@ -896,13 +916,11 @@ static int icnss_call_driver_probe(struct icnss_priv *priv)
 	if (ret < 0) {
 		icnss_pr_err("Driver probe failed: %d, state: 0x%lx, probe_cnt: %d\n",
 			     ret, priv->state, probe_cnt);
-		complete(&penv->driver_probed);
-		clear_bit(ICNSS_DRIVER_LOADING, &penv->state);
+		icnss_block_shutdown(false);
 		goto out;
 	}
 
-	complete(&penv->driver_probed);
-	clear_bit(ICNSS_DRIVER_LOADING, &priv->state);
+	icnss_block_shutdown(false);
 	set_bit(ICNSS_DRIVER_PROBED, &priv->state);
 
 	return 0;
@@ -1041,8 +1059,7 @@ static int icnss_driver_event_register_driver(void *data)
 	if (ret)
 		goto out;
 
-	set_bit(ICNSS_DRIVER_LOADING, &penv->state);
-	reinit_completion(&penv->driver_probed);
+	icnss_block_shutdown(true);
 	while (probe_cnt < ICNSS_MAX_PROBE_CNT) {
 		ret = penv->ops->probe(&penv->pdev->dev);
 		probe_cnt++;
@@ -1052,13 +1069,11 @@ static int icnss_driver_event_register_driver(void *data)
 	if (ret) {
 		icnss_pr_err("Driver probe failed: %d, state: 0x%lx, probe_cnt: %d\n",
 			     ret, penv->state, probe_cnt);
-		clear_bit(ICNSS_DRIVER_LOADING, &penv->state);
-		complete(&penv->driver_probed);
+		icnss_block_shutdown(false);
 		goto power_off;
 	}
 
-	complete(&penv->driver_probed);
-	clear_bit(ICNSS_DRIVER_LOADING, &penv->state);
+	icnss_block_shutdown(false);
 	set_bit(ICNSS_DRIVER_PROBED, &penv->state);
 
 	return 0;
@@ -1077,8 +1092,13 @@ static int icnss_driver_event_unregister_driver(void *data)
 	}
 
 	set_bit(ICNSS_DRIVER_UNLOADING, &penv->state);
+
+	icnss_block_shutdown(true);
+
 	if (penv->ops)
 		penv->ops->remove(&penv->pdev->dev);
+
+	icnss_block_shutdown(false);
 
 	clear_bit(ICNSS_DRIVER_UNLOADING, &penv->state);
 	clear_bit(ICNSS_DRIVER_PROBED, &penv->state);
@@ -1284,8 +1304,8 @@ static int icnss_modem_notifier_nb(struct notifier_block *nb,
 		return NOTIFY_OK;
 
 	if (code == SUBSYS_BEFORE_SHUTDOWN && !notif->crashed &&
-	    test_bit(ICNSS_DRIVER_LOADING, &priv->state)) {
-		if (!wait_for_completion_timeout(&priv->driver_probed,
+	    test_bit(ICNSS_BLOCK_SHUTDOWN, &priv->state)) {
+		if (!wait_for_completion_timeout(&priv->unblock_shutdown,
 						 PROBE_TIMEOUT))
 			icnss_pr_err("wlan driver probe timeout\n");
 	}
@@ -1444,6 +1464,15 @@ static int icnss_service_notifier_notify(struct notifier_block *nb,
 	}
 	icnss_pr_info("PD service down, pd_state: %d, state: 0x%lx: cause: %s\n",
 		      *state, priv->state, icnss_pdr_cause[cause]);
+	if (*state == USER_PD_STATE_CHANGE) {
+		memset(priv->crash_reason, 0, sizeof(priv->crash_reason));
+		snprintf(priv->crash_reason, sizeof(priv->crash_reason),
+		 "PD service down, pd_state: %d, state: 0x%lx: cause: %s\n",
+		 *state, priv->state, icnss_pdr_cause[cause]);
+		priv->data_ready = 1;
+		wake_up(&priv->wlan_pdr_debug_q);
+	}
+
 event_post:
 	if (!test_bit(ICNSS_FW_DOWN, &priv->state)) {
 		set_bit(ICNSS_FW_DOWN, &priv->state);
@@ -2601,8 +2630,8 @@ static int icnss_stats_show_state(struct seq_file *s, struct icnss_priv *priv)
 		case ICNSS_MODE_ON:
 			seq_puts(s, "MODE ON DONE");
 			continue;
-		case ICNSS_DRIVER_LOADING:
-			seq_puts(s, "WLAN DRIVER LOADING");
+		case ICNSS_BLOCK_SHUTDOWN:
+			seq_puts(s, "BLOCK SHUTDOWN");
 		}
 
 		seq_printf(s, "UNKNOWN-%d", i);
@@ -2968,6 +2997,39 @@ static int icnss_regread_open(struct inode *inode, struct file *file)
 	return single_open(file, icnss_regread_show, inode->i_private);
 }
 
+static unsigned int wlan_pdr_crash_reason_poll(struct file *filp,
+		struct poll_table_struct *wait)
+{
+	unsigned int mask = 0;
+	struct icnss_priv *priv = filp->private_data;
+
+	poll_wait(filp, &priv->wlan_pdr_debug_q, wait);
+
+	if (priv->data_ready)
+		mask |= (POLLIN | POLLRDNORM);
+
+	return mask;
+}
+
+static ssize_t wlan_pdr_crash_reason_read(struct file *filp, char __user *ubuf,
+		size_t cnt, loff_t *ppos)
+{
+	int r;
+	char buf[SUBSYS_CRASH_REASON_LEN];
+	ssize_t size = 0;
+	struct icnss_priv *priv = filp->private_data;
+
+	memset(buf, 0, sizeof(buf));
+	r = snprintf(buf, sizeof(buf), "%s", priv->crash_reason);
+	size = simple_read_from_buffer(ubuf, cnt, ppos, buf, r);
+	if (*ppos == r) {
+		memset(priv->crash_reason, 0, sizeof(priv->crash_reason));
+		priv->data_ready = 0;
+	}
+
+	return size;
+}
+
 static const struct file_operations icnss_regread_fops = {
 	.read           = seq_read,
 	.write          = icnss_regread_write,
@@ -2975,6 +3037,30 @@ static const struct file_operations icnss_regread_fops = {
 	.owner          = THIS_MODULE,
 	.llseek         = seq_lseek,
 };
+
+static const struct file_operations wlan_pdr_crash_reason_fops = {
+	.open 	= simple_open,
+	.read   = wlan_pdr_crash_reason_read,
+	.poll   = wlan_pdr_crash_reason_poll,
+	.llseek = default_llseek,
+};
+
+static void wlan_pdr_debugfs_create(struct dentry *root_dentry,
+			struct icnss_priv *priv)
+{
+	struct dentry *crash_reason_dentry;
+
+	crash_reason_dentry = debugfs_create_dir("crash_reason",
+							root_dentry);
+	if (IS_ERR(crash_reason_dentry))
+		icnss_pr_err("Unable to create debugfs %ld\n",
+					PTR_ERR(crash_reason_dentry));
+	else
+		debugfs_create_file("wlan_pdr_crash_reason", S_IRUGO | S_IWUSR,
+					crash_reason_dentry, priv,
+					&wlan_pdr_crash_reason_fops);
+
+}
 
 #ifdef CONFIG_ICNSS_DEBUG
 static int icnss_debugfs_create(struct icnss_priv *priv)
@@ -3001,6 +3087,7 @@ static int icnss_debugfs_create(struct icnss_priv *priv)
 			    &icnss_regread_fops);
 	debugfs_create_file("reg_write", 0600, root_dentry, priv,
 			    &icnss_regwrite_fops);
+	wlan_pdr_debugfs_create(root_dentry);
 
 out:
 	return ret;
@@ -3023,6 +3110,8 @@ static int icnss_debugfs_create(struct icnss_priv *priv)
 
 	debugfs_create_file("stats", 0600, root_dentry, priv,
 			    &icnss_stats_fops);
+	wlan_pdr_debugfs_create(root_dentry, priv);
+
 	return 0;
 }
 #endif
@@ -3206,6 +3295,7 @@ static int icnss_probe(struct platform_device *pdev)
 		goto out_smmu_deinit;
 	}
 
+	init_waitqueue_head(&priv->wlan_pdr_debug_q);
 	INIT_WORK(&priv->event_work, icnss_driver_event_work);
 	INIT_LIST_HEAD(&priv->event_list);
 
@@ -3226,7 +3316,7 @@ static int icnss_probe(struct platform_device *pdev)
 
 	penv = priv;
 
-	init_completion(&priv->driver_probed);
+	init_completion(&priv->unblock_shutdown);
 
 	icnss_pr_info("Platform driver probed successfully\n");
 
@@ -3250,7 +3340,7 @@ static int icnss_remove(struct platform_device *pdev)
 
 	icnss_debugfs_destroy(penv);
 
-	complete_all(&penv->driver_probed);
+	complete_all(&penv->unblock_shutdown);
 
 	icnss_modem_ssr_unregister_notifier(penv);
 

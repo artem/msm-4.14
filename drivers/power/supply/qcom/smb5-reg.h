@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2018-2019 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -8,6 +8,11 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
  */
 
 #ifndef __SMB5_CHARGER_REG_H
@@ -48,6 +53,11 @@ enum {
 #define BATTERY_CHARGER_STATUS_2_REG		(CHGR_BASE + 0x07)
 #define CHARGER_ERROR_STATUS_BAT_OV_BIT		BIT(1)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define BATTERY_CHARGER_STATUS_3_REG		(CHGR_BASE + 0x09)
+#define BATTERY_CHARGER_STATUS_4_REG		(CHGR_BASE + 0x0A)
+
+#endif
 #define BATTERY_CHARGER_STATUS_5_REG		(CHGR_BASE + 0x0B)
 #define ENABLE_TRICKLE_BIT			BIT(2)
 #define ENABLE_PRE_CHARGING_BIT			BIT(1)
@@ -63,6 +73,10 @@ enum {
 #define BAT_TEMP_STATUS_TOO_HOT_AFP_BIT		BIT(1)
 #define BAT_TEMP_STATUS_TOO_COLD_AFP_BIT	BIT(0)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define CHGR_INT_RT_STS_REG			(CHGR_BASE + 0x10)
+
+#endif
 #define CHARGING_ENABLE_CMD_REG			(CHGR_BASE + 0x42)
 #define CHARGING_ENABLE_CMD_BIT			BIT(0)
 
@@ -70,6 +84,9 @@ enum {
 #define CHARGING_PAUSE_CMD_BIT			BIT(0)
 
 #define CHGR_CFG2_REG				(CHGR_BASE + 0x51)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define AUTO_RECHG_BIT				BIT(2)
+#endif
 #define RECHG_MASK				GENMASK(2, 1)
 #define VBAT_BASED_RECHG_BIT			BIT(2)
 #define SOC_BASED_RECHG_BIT			GENMASK(2, 1)
@@ -102,6 +119,9 @@ enum {
 #define CHGR_ADC_RECHARGE_THRESHOLD_LSB_REG	(CHGR_BASE + 0x7F)
 
 #define JEITA_EN_CFG_REG			(CHGR_BASE + 0x90)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define JEITA_EN_HARDLIMIT			BIT(4)
+#endif
 #define JEITA_EN_HOT_SL_FCV_BIT			BIT(3)
 #define JEITA_EN_COLD_SL_FCV_BIT		BIT(2)
 #define JEITA_EN_HOT_SL_CCC_BIT			BIT(1)
@@ -112,6 +132,10 @@ enum {
 
 #define CHGR_JEITA_THRESHOLD_BASE_REG(i)	(CHGR_BASE + 0x94 + (i * 4))
 #define CHGR_JEITA_HOT_THRESHOLD_MSB_REG	CHGR_JEITA_THRESHOLD_BASE_REG(0)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define CHGR_JEITA_THOT_THRESHOLD_MSB_REG	(CHGR_BASE + 0x98)
+#define CHGR_JEITA_TCOLD_THRESHOLD_MSB_REG	(CHGR_BASE + 0x9A)
+#endif
 
 #define CHGR_FAST_CHARGE_SAFETY_TIMER_CFG_REG	(CHGR_BASE + 0xA2)
 #define FAST_CHARGE_SAFETY_TIMER_192_MIN	0x0
@@ -127,6 +151,10 @@ enum {
  ********************************/
 #define ICL_MAX_STATUS_REG			(DCDC_BASE + 0x06)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define ICL_STATUS_REG				(DCDC_BASE + 0x07)
+
+#endif
 #define AICL_ICL_STATUS_REG			(DCDC_BASE + 0x08)
 
 #define AICL_STATUS_REG				(DCDC_BASE + 0x0A)
@@ -140,6 +168,10 @@ enum {
 #define POWER_PATH_MASK				GENMASK(2, 1)
 #define VALID_INPUT_POWER_SOURCE_STS_BIT	BIT(0)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define DCDC_INT_RT_STS_REG			(DCDC_BASE + 0x10)
+
+#endif
 #define DCDC_CMD_OTG_REG			(DCDC_BASE + 0x40)
 #define OTG_EN_BIT				BIT(0)
 
@@ -175,12 +207,20 @@ enum {
 #define ALL_CHNL_CONV_DONE_RT_STS		BIT(1)
 #define BAT_TEMP_RT_STS_BIT			BIT(0)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define BATIF_INT_RT_STS_REG			(BATIF_BASE + 0x10)
+
+#endif
 #define SHIP_MODE_REG				(BATIF_BASE + 0x40)
 #define SHIP_MODE_EN_BIT			BIT(0)
 
 /********************************
  *  USBIN Peripheral Registers  *
  ********************************/
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define USBIN_INPUT_STATUS_REG			(USBIN_BASE + 0x06)
+
+#endif
 #define APSD_STATUS_REG				(USBIN_BASE + 0x07)
 #define APSD_STATUS_7_BIT			BIT(7)
 #define HVDCP_CHECK_TIMEOUT_BIT			BIT(6)
@@ -218,6 +258,10 @@ enum {
 #define USBIN_VASHDN_RT_STS_BIT			BIT(1)
 #define USBIN_COLLAPSE_RT_STS_BIT		BIT(0)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define USB_INT_RT_STS_REG			(USBIN_BASE + 0x10)
+
+#endif
 #define USBIN_CMD_IL_REG			(USBIN_BASE + 0x40)
 #define USBIN_SUSPEND_BIT			BIT(0)
 
@@ -277,6 +321,10 @@ enum {
 #define USBIN_LOAD_CFG_REG			(USBIN_BASE + 0x65)
 #define ICL_OVERRIDE_AFTER_APSD_BIT		BIT(4)
 #define USBIN_AICL_STEP_TIMING_SEL_MASK		GENMASK(3, 2)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define USBIN_AICL_STEP_TIMING_SEL_5MS		0x00
+#define USBIN_AICL_STEP_TIMING_SEL_30MS		0x08
+#endif
 #define USBIN_IN_COLLAPSE_GF_SEL_MASK		GENMASK(1, 0)
 
 #define USBIN_ICL_OPTIONS_REG			(USBIN_BASE + 0x66)
@@ -292,6 +340,18 @@ enum {
 #define USBIN_AICL_ADC_EN_BIT			BIT(3)
 #define USBIN_AICL_EN_BIT			BIT(2)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define USBIN_5V_AICL_THRESHOLD_CFG_REG		(USBIN_BASE + 0x81)
+#define USBIN_5V_AICL_THRESHOLD_CFG_MASK	GENMASK(2, 0)
+#define USBIN_5V_AICL_THRESHOLD_4P0V		0
+#define USBIN_5V_AICL_THRESHOLD_4P5V		5
+
+#define USBIN_CONT_AICL_THRESHOLD_CFG_REG	(USBIN_BASE + 0x84)
+#define USBIN_CONT_AICL_THRESHOLD_CFG_MASK	GENMASK(5, 0)
+#define USBIN_CONT_AICL_THRESHOLD_4P0V		0
+#define USBIN_CONT_AICL_THRESHOLD_4P5V		5
+
+#endif
 #define USB_ENG_SSUPPLY_USB2_REG		(USBIN_BASE + 0xC0)
 #define ENG_SSUPPLY_12V_OV_OPT_BIT		BIT(1)
 
@@ -318,6 +378,10 @@ enum {
 #define SNK_RP_3P0_BIT				BIT(1)
 #define SNK_RP_SHORT_BIT			BIT(0)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define TYPE_C_SNK_DEBUG_ACCESS_STATUS_REG	(TYPEC_BASE + 0x07)
+
+#endif
 #define TYPE_C_SRC_STATUS_REG			(TYPEC_BASE + 0x08)
 #define DETECTED_SNK_TYPE_MASK			GENMASK(4, 0)
 #define SRC_HIGH_BATT_BIT			BIT(5)
@@ -338,6 +402,10 @@ enum {
 #define CC_ORIENTATION_BIT			BIT(1)
 #define CC_ATTACHED_BIT				BIT(0)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define TYPE_C_TRY_SNK_SRC_STATUS_REG		(TYPEC_BASE + 0x0C)
+
+#endif
 #define LEGACY_CABLE_STATUS_REG			(TYPEC_BASE + 0x0D)
 #define TYPEC_LEGACY_CABLE_STATUS_BIT		BIT(1)
 #define TYPEC_NONCOMP_LEGACY_CABLE_STATUS_BIT	BIT(0)
@@ -350,6 +418,10 @@ enum {
 #define U_USB_FMB2_BIT				BIT(1)
 #define U_USB_FLOAT2_BIT			BIT(0)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define TYPEC_INT_RT_STS_REG			(TYPEC_BASE + 0x10)
+
+#endif
 #define TYPE_C_MODE_CFG_REG			(TYPEC_BASE + 0x44)
 #define TYPEC_TRY_MODE_MASK			GENMASK(4, 3)
 #define EN_TRY_SNK_BIT				BIT(4)
@@ -378,6 +450,7 @@ enum {
 
 #define TYPE_C_EXIT_STATE_CFG_REG		(TYPEC_BASE + 0x50)
 #define BYPASS_VSAFE0V_DURING_ROLE_SWAP_BIT	BIT(3)
+#define SEL_SRC_UPPER_REF_BIT			BIT(2)
 #define EXIT_SNK_BASED_ON_CC_BIT		BIT(0)
 
 #define TYPE_C_CURRSRC_CFG_REG			(TYPEC_BASE + 0x52)
@@ -452,6 +525,10 @@ enum {
 #define CONNECTOR_TEMP_UB_BIT			BIT(1)
 #define CONNECTOR_TEMP_LB_BIT			BIT(0)
 
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#define MISC_INT_RT_STS_REG			(MISC_BASE + 0x10)
+
+#endif
 #define BARK_BITE_WDOG_PET_REG			(MISC_BASE + 0x43)
 #define BARK_BITE_WDOG_PET_BIT			BIT(0)
 

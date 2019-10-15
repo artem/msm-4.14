@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -83,8 +88,7 @@ static int cam_lrme_mgr_util_get_device(struct cam_lrme_hw_mgr *hw_mgr,
 	return 0;
 }
 
-static int cam_lrme_mgr_util_packet_validate(struct cam_packet *packet,
-	size_t remain_len)
+static int cam_lrme_mgr_util_packet_validate(struct cam_packet *packet)
 {
 	struct cam_cmd_buf_desc *cmd_desc = NULL;
 	int i, rc;
@@ -106,7 +110,7 @@ static int cam_lrme_mgr_util_packet_validate(struct cam_packet *packet,
 		packet->patch_offset, packet->num_patches,
 		packet->kmd_cmd_buf_offset, packet->kmd_cmd_buf_index);
 
-	if (cam_packet_util_validate_packet(packet, remain_len)) {
+	if (cam_packet_util_validate_packet(packet)) {
 		CAM_ERR(CAM_LRME, "invalid packet:%d %d %d %d %d",
 			packet->kmd_cmd_buf_index,
 			packet->num_cmd_buf, packet->cmd_buf_offset,
@@ -187,13 +191,13 @@ static int cam_lrme_mgr_util_prepare_io_buffer(int32_t iommu_hdl,
 				return -ENOMEM;
 			}
 
-			if ((size_t)io_cfg[i].offsets[plane] >= size) {
-				CAM_ERR(CAM_LRME, "Invalid plane offset: %zu",
-					(size_t)io_cfg[i].offsets[plane]);
-				return -EINVAL;
-			}
-
 			io_addr[plane] += io_cfg[i].offsets[plane];
+
+			if (io_addr[plane] >> 32) {
+				CAM_ERR(CAM_LRME, "Invalid io addr for %d %d",
+					plane, rc);
+				return -ENOMEM;
+			}
 
 			CAM_DBG(CAM_LRME, "IO Address[%d][%d] : %llu",
 				io_cfg[i].direction, plane, io_addr[plane]);
@@ -572,13 +576,12 @@ static int cam_lrme_mgr_get_caps(void *hw_mgr_priv, void *hw_get_caps_args)
 
 	if (sizeof(struct cam_lrme_query_cap_cmd) != args->size) {
 		CAM_ERR(CAM_LRME,
-			"sizeof(struct cam_query_cap_cmd) = %zu, args->size = %d",
+			"sizeof(struct cam_query_cap_cmd) = %lu, args->size = %d",
 			sizeof(struct cam_query_cap_cmd), args->size);
 		return -EFAULT;
 	}
 
-	if (copy_to_user(u64_to_user_ptr(args->caps_handle),
-		&(hw_mgr->lrme_caps),
+	if (copy_to_user((void __user *)args->caps_handle, &(hw_mgr->lrme_caps),
 		sizeof(struct cam_lrme_query_cap_cmd))) {
 		CAM_ERR(CAM_LRME, "copy to user failed");
 		return -EFAULT;
@@ -593,7 +596,7 @@ static int cam_lrme_mgr_hw_acquire(void *hw_mgr_priv, void *hw_acquire_args)
 	struct cam_hw_acquire_args *args =
 		(struct cam_hw_acquire_args *)hw_acquire_args;
 	struct cam_lrme_acquire_args lrme_acquire_args;
-	uintptr_t device_index;
+	uint64_t device_index;
 
 	if (!hw_mgr_priv || !args) {
 		CAM_ERR(CAM_LRME,
@@ -614,7 +617,7 @@ static int cam_lrme_mgr_hw_acquire(void *hw_mgr_priv, void *hw_acquire_args)
 	CAM_DBG(CAM_LRME, "Get device id %llu", device_index);
 
 	if (device_index >= hw_mgr->device_count) {
-		CAM_ERR(CAM_LRME, "Get wrong device id %lu", device_index);
+		CAM_ERR(CAM_LRME, "Get wrong device id %llu", device_index);
 		return -EINVAL;
 	}
 
@@ -669,7 +672,7 @@ static int cam_lrme_mgr_hw_flush(void *hw_mgr_priv, void *hw_flush_args)
 	}
 
 	args = (struct cam_hw_flush_args *)hw_flush_args;
-	device_index = ((uintptr_t)args->ctxt_to_hw_map & 0xF);
+	device_index = ((uint64_t)args->ctxt_to_hw_map & 0xF);
 	if (device_index >= hw_mgr->device_count) {
 		CAM_ERR(CAM_LRME, "Invalid device index %d", device_index);
 		return -EPERM;
@@ -848,7 +851,7 @@ static int cam_lrme_mgr_hw_prepare_update(void *hw_mgr_priv,
 		goto error;
 	}
 
-	rc = cam_lrme_mgr_util_packet_validate(args->packet, args->remain_len);
+	rc = cam_lrme_mgr_util_packet_validate(args->packet);
 	if (rc) {
 		CAM_ERR(CAM_LRME, "Error in packet validation %d", rc);
 		goto error;

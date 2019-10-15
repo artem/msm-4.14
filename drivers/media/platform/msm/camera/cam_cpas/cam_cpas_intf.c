@@ -9,6 +9,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*
+ * NOTE: This file has been modified by Sony Mobile Communications Inc.
+ * Modifications are Copyright (c) 2018 Sony Mobile Communications Inc,
+ * and licensed under the license of the file.
+ */
 
 #include <linux/of.h>
 #include <linux/module.h>
@@ -367,7 +372,7 @@ int cam_cpas_subdev_cmd(struct cam_cpas_intf *cpas_intf,
 	case CAM_QUERY_CAP: {
 		struct cam_cpas_query_cap query;
 
-		rc = copy_from_user(&query, u64_to_user_ptr(cmd->handle),
+		rc = copy_from_user(&query, (void __user *) cmd->handle,
 			sizeof(query));
 		if (rc) {
 			CAM_ERR(CAM_CPAS, "Failed in copy from user, rc=%d",
@@ -381,7 +386,7 @@ int cam_cpas_subdev_cmd(struct cam_cpas_intf *cpas_intf,
 		if (rc)
 			break;
 
-		rc = copy_to_user(u64_to_user_ptr(cmd->handle), &query,
+		rc = copy_to_user((void __user *) cmd->handle, &query,
 			sizeof(query));
 		if (rc)
 			CAM_ERR(CAM_CPAS, "Failed in copy to user, rc=%d", rc);
